@@ -44,12 +44,14 @@ body{
 /* ── HEADER ─────────────────────────────────── */
 header{
   background:linear-gradient(135deg,var(--rot-dunkel) 0%,#8c1e2d 100%);
-  position:sticky;top:0;z-index:200;height:72px;
-  display:flex;align-items:center;justify-content:space-between;
-  padding:0 36px;overflow:hidden;
+  position:sticky;top:0;z-index:200;
   box-shadow:0 2px 24px rgba(109,23,35,.22);
 }
-header::before{content:'';position:absolute;left:0;top:0;width:4px;height:100%;
+.hdr-top{
+  height:72px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 36px;overflow:hidden;position:relative;
+}
+.hdr-top::before{content:'';position:absolute;left:0;top:0;width:4px;height:100%;
   background:linear-gradient(to bottom,var(--beige),rgba(212,201,181,.3));border-radius:0 2px 2px 0;}
 .hdr-orb{position:absolute;border-radius:50%;pointer-events:none;}
 .hdr-orb1{right:-30px;top:-50px;width:140px;height:140px;
@@ -63,6 +65,34 @@ header::before{content:'';position:absolute;left:0;top:0;width:4px;height:100%;
   color:var(--weiss);letter-spacing:3px;text-transform:uppercase;line-height:1.05;}
 .hdr-title{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:600;
   color:rgba(212,201,181,.65);letter-spacing:2.5px;text-transform:uppercase;z-index:1;}
+
+/* ── NAV BAR ─────────────────────────────────── */
+.nav-bar{
+  display:flex;align-items:stretch;
+  background:rgba(0,0,0,.18);
+  border-top:1px solid rgba(255,255,255,.08);
+  padding:0 28px;
+  overflow-x:auto;
+  scrollbar-width:none;
+}
+.nav-bar::-webkit-scrollbar{display:none;}
+.nav-btn{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:10px 18px;
+  font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;
+  letter-spacing:1.8px;text-transform:uppercase;
+  color:rgba(255,255,255,.55);
+  background:none;border:none;cursor:pointer;
+  border-bottom:2.5px solid transparent;
+  transition:color .18s,border-color .18s;
+  white-space:nowrap;
+}
+.nav-btn:hover{color:rgba(255,255,255,.85);}
+.nav-btn.active{
+  color:var(--weiss);
+  border-bottom-color:var(--beige);
+}
+.nav-btn .nav-icon{font-size:14px;}
 
 /* ── MAIN ────────────────────────────────────── */
 main{max-width:1440px;margin:0 auto;padding:36px 28px 80px;}
@@ -497,6 +527,52 @@ code-block{display:block;}
 .task-edit:hover{color:var(--rot-mittel);transform:scale(1.2);}
 .task-actions{display:flex;flex-direction:column;align-items:center;padding:4px 2px 4px 0;gap:2px;}
 
+/* ── SUBTASKS ────────────────────────────────── */
+.subtask-toggle{
+  display:flex;align-items:center;gap:6px;
+  padding:6px 0 4px;cursor:pointer;user-select:none;
+  border-top:1px solid rgba(212,201,181,.3);margin-top:8px;
+}
+.subtask-toggle-label{
+  font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;
+  letter-spacing:1.5px;text-transform:uppercase;color:var(--grau-light);flex:1;
+}
+.subtask-toggle-arrow{
+  font-size:8px;color:var(--grau-light);
+  transition:transform .25s cubic-bezier(.4,0,.2,1);display:inline-block;
+}
+.subtask-toggle.open .subtask-toggle-arrow{transform:rotate(90deg);}
+.subtask-progress-mini{
+  font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;
+  color:var(--rot-mittel);
+}
+.subtask-list{
+  overflow:hidden;
+  max-height:0;opacity:0;
+  transition:max-height .3s cubic-bezier(.4,0,.2,1), opacity .25s ease;
+}
+.subtask-list.open{max-height:600px;opacity:1;}
+.subtask-item{
+  display:flex;align-items:center;gap:8px;
+  padding:7px 0;border-bottom:1px solid rgba(212,201,181,.2);
+}
+.subtask-item:last-child{border-bottom:none;}
+.subtask-check{
+  width:16px;height:16px;flex-shrink:0;cursor:pointer;
+  accent-color:var(--rot-hell);border-radius:3px;
+}
+.subtask-name{
+  font-size:12.5px;color:var(--grau);flex:1;line-height:1.3;
+}
+.subtask-name.done{
+  text-decoration:line-through;color:var(--grau-light);
+}
+.subtask-pct-badge{
+  font-family:'Barlow Condensed',sans-serif;font-size:9px;font-weight:700;
+  letter-spacing:.5px;padding:2px 7px;border-radius:var(--radius-pill);
+  background:rgba(212,201,181,.4);color:var(--grau);white-space:nowrap;flex-shrink:0;
+}
+
 /* ── EDIT MODAL ──────────────────────────────── */
 .edit-modal-overlay{
   position:fixed;inset:0;z-index:600;
@@ -609,6 +685,681 @@ footer{background:rgba(255,255,255,.5);backdrop-filter:blur(10px);
 .toast.success{background:var(--rot-dunkel);}
 .toast.error{background:#c0392b;}
 
+/* ── IMPACT ANIMATION ────────────────────────── */
+#impact-canvas{
+  position:fixed;inset:0;z-index:9999;
+  pointer-events:none;opacity:0;
+}
+/* flash overlay */
+#impact-flash{
+  position:fixed;inset:0;z-index:9998;
+  background:radial-gradient(circle at center, rgba(220,13,29,.28) 0%, rgba(109,23,35,.12) 50%, transparent 75%);
+  pointer-events:none;opacity:0;
+  transition:opacity .08s;
+}
+/* screen shake – softer */
+@keyframes impactShake{
+  0%  {transform:translate(0,0);}
+  20% {transform:translate(-3px, 2px);}
+  40% {transform:translate(3px, -2px);}
+  60% {transform:translate(-2px, 1px);}
+  80% {transform:translate(1px, -1px);}
+  100%{transform:translate(0,0);}
+}
+body.impact-shake{animation:impactShake .32s ease-out both;}
+/* page transitions – smooth & gentle */
+.page-exit{
+  animation:pageExit .22s ease-in forwards;
+}
+.page-enter{
+  animation:pageEnter .35s cubic-bezier(.2,0,.2,1) forwards;
+}
+@keyframes pageExit{
+  from{opacity:1;transform:translateY(0) scale(1);}
+  to  {opacity:0;transform:translateY(-8px) scale(.98);}
+}
+@keyframes pageEnter{
+  from{opacity:0;transform:translateY(12px) scale(.99);}
+  to  {opacity:1;transform:translateY(0) scale(1);}
+}
+
+/* ── HILFE PAGE ──────────────────────────────── */
+#page-hilfe{display:none;}
+
+/* Tour cards */
+.tour-progress{
+  display:flex;align-items:center;gap:8px;
+  margin-bottom:24px;flex-wrap:wrap;
+}
+.tour-step-dot{
+  width:10px;height:10px;border-radius:50%;flex-shrink:0;
+  background:rgba(212,201,181,.5);cursor:pointer;transition:all .2s;
+}
+.tour-step-dot.active{background:var(--rot-hell);transform:scale(1.3);}
+.tour-step-dot.done{background:var(--rot-dunkel);}
+.tour-label{
+  font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;
+  letter-spacing:2px;text-transform:uppercase;color:var(--grau-light);
+  margin-left:4px;
+}
+
+.tour-card{
+  background:var(--glass-bg);
+  backdrop-filter:blur(20px) saturate(1.6);
+  -webkit-backdrop-filter:blur(20px) saturate(1.6);
+  border:1.5px solid var(--glass-border);
+  border-radius:var(--radius);
+  box-shadow:var(--glass-shadow);
+  overflow:hidden;
+  display:none;
+  animation:cardIn .3s ease both;
+}
+.tour-card.active{display:block;}
+.tour-card-header{
+  background:linear-gradient(135deg,var(--rot-dunkel),#8c1e2d);
+  padding:18px 24px;
+  display:flex;align-items:center;gap:14px;
+}
+.tour-step-num{
+  width:36px;height:36px;border-radius:50%;flex-shrink:0;
+  background:rgba(255,255,255,.15);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:900;
+  color:var(--weiss);
+}
+.tour-card-title{
+  font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:800;
+  letter-spacing:1.5px;text-transform:uppercase;color:var(--weiss);
+  flex:1;
+}
+.tour-card-icon{font-size:28px;}
+.tour-card-body{padding:22px 24px 20px;}
+.tour-card-text{
+  font-size:14px;color:var(--grau);line-height:1.7;margin-bottom:16px;
+}
+.tour-card-text strong{color:var(--rot-dunkel);}
+.tour-card-nav{
+  display:flex;justify-content:space-between;align-items:center;gap:12px;
+  margin-top:4px;
+}
+.tour-nav-btn{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:10px 20px;border-radius:var(--radius-sm);
+  font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;
+  letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;transition:all .18s;
+}
+.tour-nav-btn.prev{
+  background:rgba(255,255,255,.55);color:var(--grau);
+  border:1.5px solid rgba(212,201,181,.6);
+}
+.tour-nav-btn.prev:hover{border-color:var(--rot-mittel);color:var(--rot-dunkel);}
+.tour-nav-btn.next{
+  background:linear-gradient(135deg,var(--rot-hell),var(--rot-mittel));
+  color:var(--weiss);border:none;
+  box-shadow:0 4px 14px rgba(220,13,29,.25);
+}
+.tour-nav-btn.next:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(220,13,29,.32);}
+.tour-step-counter{
+  font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:600;
+  letter-spacing:1px;color:var(--grau-light);
+}
+
+/* Mockup illustrations */
+.mockup{
+  background:rgba(255,255,255,.55);
+  border:1.5px solid rgba(212,201,181,.6);
+  border-radius:var(--radius-sm);
+  padding:14px;margin-bottom:16px;
+  overflow:hidden;
+}
+.mockup-bar{
+  height:8px;border-radius:4px;margin-bottom:8px;
+  background:linear-gradient(to right,var(--rot-dunkel),var(--rot-hell));
+  opacity:.7;
+}
+.mockup-row{
+  display:flex;gap:8px;margin-bottom:6px;align-items:center;
+}
+.mockup-block{
+  border-radius:4px;background:rgba(212,201,181,.5);
+  flex-shrink:0;
+}
+.mockup-tag{
+  border-radius:20px;padding:3px 10px;
+  font-family:'Barlow Condensed',sans-serif;font-size:9px;font-weight:700;
+  letter-spacing:1px;text-transform:uppercase;color:var(--weiss);flex-shrink:0;
+}
+.mockup-label{
+  font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;
+  letter-spacing:1px;text-transform:uppercase;color:var(--grau);flex:1;
+}
+.mockup-slider-track{
+  flex:1;height:5px;background:rgba(212,201,181,.4);border-radius:20px;
+  position:relative;
+}
+.mockup-slider-fill{
+  height:100%;border-radius:20px;
+  background:linear-gradient(to right,var(--rot-hell),var(--rot-mittel));
+}
+.mockup-slider-thumb{
+  position:absolute;top:50%;transform:translateY(-50%);
+  width:13px;height:13px;border-radius:50%;
+  background:var(--rot-hell);border:2px solid #fff;
+  box-shadow:0 1px 4px rgba(220,13,29,.3);
+}
+.mockup-nav{
+  display:flex;gap:6px;margin-bottom:10px;
+}
+.mockup-nav-btn{
+  padding:4px 10px;border-radius:20px;
+  font-family:'Barlow Condensed',sans-serif;font-size:9px;font-weight:700;
+  letter-spacing:1px;text-transform:uppercase;
+  background:rgba(212,201,181,.3);color:var(--grau);border:1px solid rgba(212,201,181,.5);
+}
+.mockup-nav-btn.active{background:var(--rot-hell);color:#fff;border-color:var(--rot-hell);}
+.mockup-card{
+  background:rgba(255,255,255,.7);border:1px solid rgba(212,201,181,.5);
+  border-radius:8px;padding:10px 12px;margin-bottom:6px;
+  display:flex;align-items:center;gap:8px;
+}
+.mockup-stripe{width:4px;height:36px;border-radius:2px;flex-shrink:0;}
+.mockup-kpi-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px;}
+.mockup-kpi{
+  background:rgba(255,255,255,.7);border:1px solid rgba(212,201,181,.4);
+  border-radius:8px;padding:8px 10px;
+}
+.mockup-kpi-val{
+  font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;
+  color:var(--rot-dunkel);line-height:1;
+}
+.mockup-kpi-lbl{font-size:9px;color:var(--grau-light);margin-top:2px;}
+.mockup-tip{
+  display:flex;align-items:flex-start;gap:8px;
+  background:rgba(109,23,35,.06);border:1px solid rgba(109,23,35,.12);
+  border-radius:8px;padding:10px 12px;margin-top:8px;
+}
+.mockup-tip-icon{font-size:14px;flex-shrink:0;margin-top:1px;}
+.mockup-tip-text{font-size:12px;color:var(--grau);line-height:1.5;}
+.mockup-tip-text strong{color:var(--rot-dunkel);}
+
+/* Detailed guide sections */
+.guide-section{
+  background:var(--glass-bg);
+  backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+  border:1.5px solid var(--glass-border);
+  border-radius:var(--radius);
+  box-shadow:var(--glass-shadow);
+  overflow:hidden;margin-bottom:16px;
+}
+.guide-section-header{
+  display:flex;align-items:center;gap:12px;
+  padding:14px 20px;
+  background:rgba(109,23,35,.05);
+  border-bottom:1px solid rgba(212,201,181,.4);
+  cursor:pointer;user-select:none;
+}
+.guide-section-icon{font-size:20px;}
+.guide-section-title{
+  font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:800;
+  letter-spacing:1.5px;text-transform:uppercase;color:var(--rot-dunkel);flex:1;
+}
+.guide-section-arrow{
+  font-size:11px;color:var(--grau-light);
+  transition:transform .25s;display:inline-block;
+}
+.guide-section-header.open .guide-section-arrow{transform:rotate(90deg);}
+.guide-section-body{
+  padding:0 20px;max-height:0;overflow:hidden;
+  transition:max-height .35s cubic-bezier(.4,0,.2,1),padding .35s;
+}
+.guide-section-body.open{
+  padding:18px 20px;max-height:1200px;
+}
+.guide-feature-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:4px;
+}
+.guide-feature{
+  background:rgba(255,255,255,.5);border:1px solid rgba(212,201,181,.4);
+  border-radius:8px;padding:12px 14px;
+}
+.guide-feature-icon{font-size:18px;margin-bottom:6px;}
+.guide-feature-title{
+  font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;
+  letter-spacing:1px;text-transform:uppercase;color:var(--rot-dunkel);margin-bottom:4px;
+}
+.guide-feature-text{font-size:12px;color:var(--grau);line-height:1.5;}
+.guide-step-list{display:flex;flex-direction:column;gap:10px;}
+.guide-step{display:flex;align-items:flex-start;gap:12px;}
+.guide-step-num{
+  width:24px;height:24px;border-radius:50%;flex-shrink:0;
+  background:var(--rot-hell);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:900;
+  color:#fff;margin-top:1px;
+}
+.guide-step-text{font-size:13px;color:var(--grau);line-height:1.6;flex:1;}
+.guide-step-text strong{color:var(--rot-dunkel);}
+.guide-badge-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;}
+.guide-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:5px 12px;border-radius:20px;
+  font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;
+  letter-spacing:.8px;
+}
+.guide-tip-box{
+  background:rgba(109,23,35,.05);border:1.5px solid rgba(109,23,35,.12);
+  border-radius:8px;padding:12px 16px;margin-top:12px;
+  font-size:12px;color:var(--grau);line-height:1.6;
+}
+.guide-tip-box strong{color:var(--rot-dunkel);}
+@media(max-width:600px){
+  .guide-feature-grid{grid-template-columns:1fr;}
+  .tour-card-body{padding:16px 16px 14px;}
+  .tour-card-header{padding:14px 16px;}
+}
+
+.dash-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+  gap:20px;margin-bottom:28px;
+}
+.dash-kpi{
+  background:var(--glass-bg);
+  backdrop-filter:blur(20px) saturate(1.6);
+  -webkit-backdrop-filter:blur(20px) saturate(1.6);
+  border:1.5px solid var(--glass-border);
+  border-radius:var(--radius);
+  box-shadow:var(--glass-shadow);
+  padding:22px 24px;
+  display:flex;flex-direction:column;gap:6px;
+  position:relative;overflow:hidden;
+}
+.dash-kpi::after{
+  content:'';position:absolute;right:-18px;top:-18px;
+  width:80px;height:80px;border-radius:50%;
+  background:rgba(220,13,29,.06);pointer-events:none;
+}
+.kpi-label{
+  font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;
+  letter-spacing:2px;text-transform:uppercase;color:var(--grau-light);
+}
+.kpi-value{
+  font-family:'Barlow Condensed',sans-serif;font-size:40px;font-weight:900;
+  color:var(--rot-dunkel);line-height:1;
+}
+.kpi-sub{font-size:12px;color:var(--grau-light);}
+.kpi-bar-track{
+  height:4px;background:rgba(212,201,181,.4);
+  border-radius:var(--radius-pill);overflow:hidden;margin-top:4px;
+}
+.kpi-bar-fill{
+  height:100%;
+  background:linear-gradient(to right,var(--rot-hell),var(--rot-mittel));
+  border-radius:var(--radius-pill);
+  transition:width .8s cubic-bezier(.4,0,.2,1);
+}
+
+/* Eisenhower quadrant grid */
+.eis-dash-grid{
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:14px;
+}
+.eis-dash-card{
+  background:var(--glass-bg);
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  border:1.5px solid var(--glass-border);
+  border-radius:var(--radius);
+  box-shadow:var(--glass-shadow);
+  padding:18px 20px;
+  position:relative;overflow:hidden;
+}
+.eis-dash-stripe{
+  position:absolute;left:0;top:0;bottom:0;width:5px;
+  border-radius:var(--radius) 0 0 var(--radius);
+}
+.eis-dash-card .kpi-label{margin-bottom:4px;}
+.eis-dash-card .kpi-value{font-size:32px;}
+.eis-dash-card .kpi-sub{font-size:11px;}
+
+/* Person progress list */
+.person-dash-list{display:flex;flex-direction:column;gap:12px;}
+.person-dash-row{
+  background:var(--glass-bg);
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  border:1.5px solid var(--glass-border);
+  border-radius:var(--radius);
+  box-shadow:var(--glass-shadow);
+  padding:16px 20px;
+}
+.pdr-top{
+  display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:10px;
+}
+.pdr-name{
+  font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:800;
+  letter-spacing:1.5px;text-transform:uppercase;color:var(--rot-dunkel);
+}
+.pdr-pct{
+  font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:900;
+  color:var(--rot-dunkel);
+}
+.pdr-meta{
+  display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap;
+}
+.pdr-chip{
+  font-family:'Barlow Condensed',sans-serif;font-size:9px;font-weight:700;
+  letter-spacing:1px;text-transform:uppercase;
+  padding:2px 9px;border-radius:var(--radius-pill);color:var(--weiss);
+}
+.pdr-bar-track{
+  height:6px;background:rgba(212,201,181,.4);
+  border-radius:var(--radius-pill);overflow:hidden;
+}
+.pdr-bar-fill{
+  height:100%;
+  background:linear-gradient(to right,var(--rot-hell),var(--rot-mittel));
+  border-radius:var(--radius-pill);
+  transition:width .8s cubic-bezier(.4,0,.2,1);
+}
+
+/* ── KOMMANDOZENTRALE ────────────────────────── */
+#page-kommando{display:none;}
+
+/* Alert list items (overdue / soon) */
+.alert-list{display:flex;flex-direction:column;gap:8px;}
+.alert-item{
+  display:flex;align-items:flex-start;gap:12px;
+  background:var(--glass-bg);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border:1.5px solid var(--glass-border);
+  border-radius:var(--radius-sm);
+  box-shadow:var(--glass-shadow);
+  padding:11px 14px;
+  transition:box-shadow .2s,transform .2s;
+  cursor:pointer;
+}
+.alert-item:hover{box-shadow:var(--glass-shadow-lg);transform:translateY(-1px);}
+.alert-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:3px;}
+.alert-dot.overdue{background:var(--rot-hell);box-shadow:0 0 6px rgba(220,13,29,.4);}
+.alert-dot.soon{background:#e67e22;box-shadow:0 0 6px rgba(230,126,34,.3);}
+.alert-dot.focus{background:#2980b9;box-shadow:0 0 6px rgba(41,128,185,.3);}
+.alert-body{flex:1;min-width:0;}
+.alert-title{
+  font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;
+  color:var(--rot-dunkel);letter-spacing:.3px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.alert-meta{
+  font-size:11px;color:var(--grau-light);margin-top:2px;
+  display:flex;gap:8px;flex-wrap:wrap;align-items:center;
+}
+.alert-frist{font-weight:600;}
+.alert-frist.overdue{color:var(--rot-hell);}
+.alert-frist.soon{color:#e67e22;}
+.alert-person-chip{
+  font-family:'Barlow Condensed',sans-serif;font-size:9px;font-weight:700;
+  letter-spacing:1px;text-transform:uppercase;
+  padding:1px 7px;border-radius:var(--radius-pill);
+  background:rgba(109,23,35,.1);color:var(--rot-dunkel);
+}
+.alert-badge{
+  font-family:'Barlow Condensed',sans-serif;font-size:9px;font-weight:700;
+  letter-spacing:.8px;text-transform:uppercase;
+  padding:2px 8px;border-radius:var(--radius-pill);
+  color:var(--weiss);flex-shrink:0;align-self:center;
+}
+.alert-focus-btn{
+  background:none;border:1.5px solid rgba(212,201,181,.6);
+  border-radius:var(--radius-pill);padding:3px 10px;
+  font-family:'Barlow Condensed',sans-serif;font-size:9px;font-weight:700;
+  letter-spacing:1px;text-transform:uppercase;
+  cursor:pointer;color:var(--grau);transition:all .18s;flex-shrink:0;align-self:center;
+}
+.alert-focus-btn.active{background:rgba(41,128,185,.12);border-color:rgba(41,128,185,.4);color:#2980b9;}
+.alert-focus-btn:hover{border-color:var(--rot-mittel);color:var(--rot-dunkel);}
+
+/* Schnell-Notiz */
+.notiz-area{
+  width:100%;min-height:120px;resize:vertical;
+  background:rgba(255,255,255,.6);
+  border:1.5px solid rgba(212,201,181,.6);
+  border-radius:var(--radius-sm);
+  padding:12px 14px;
+  font-family:'Barlow',sans-serif;font-size:14px;
+  color:var(--grau);line-height:1.6;
+  outline:none;transition:border-color .2s,background .2s;
+}
+.notiz-area:focus{border-color:var(--rot-mittel);background:rgba(255,255,255,.9);}
+.notiz-meta{
+  display:flex;justify-content:space-between;align-items:center;
+  margin-top:6px;font-size:11px;color:var(--grau-light);
+}
+
+/* Top-10 list */
+.top10-list{display:flex;flex-direction:column;gap:6px;}
+.top10-item{
+  display:flex;align-items:center;gap:10px;
+  background:var(--glass-bg);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border:1.5px solid var(--glass-border);
+  border-radius:var(--radius-sm);
+  box-shadow:var(--glass-shadow);
+  padding:9px 14px;
+  cursor:pointer;transition:all .2s;
+}
+.top10-item:hover{box-shadow:var(--glass-shadow-lg);transform:translateY(-1px);}
+.top10-rank{
+  font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:900;
+  color:rgba(212,201,181,.7);min-width:26px;text-align:center;
+}
+.top10-body{flex:1;min-width:0;}
+.top10-title{
+  font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;
+  color:var(--rot-dunkel);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.top10-meta{font-size:11px;color:var(--grau-light);margin-top:1px;}
+
+/* Kommando 2-col layout */
+.kommando-grid{
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:24px;align-items:start;
+}
+@media(max-width:800px){.kommando-grid{grid-template-columns:1fr;}}
+
+/* Heute-Fokus highlight */
+.alert-item.heute-fokus{
+  border-color:rgba(41,128,185,.35);
+  background:rgba(41,128,185,.06);
+}
+.focus-empty{
+  text-align:center;padding:32px 16px;
+  font-family:'Barlow Condensed',sans-serif;font-size:12px;
+  letter-spacing:2px;text-transform:uppercase;color:rgba(87,94,98,.4);
+}
+
+/* ── PROFIL WIDGET ───────────────────────────── */
+.profil-bar{
+  display:inline-flex;align-items:center;gap:8px;
+  background:rgba(255,255,255,.12);
+  border:1.5px solid rgba(255,255,255,.2);
+  border-radius:var(--radius-pill);
+  padding:4px 12px 4px 5px;
+  cursor:pointer;transition:all .18s;z-index:1;
+}
+.profil-bar:hover{background:rgba(255,255,255,.2);}
+.profil-avatar{
+  width:26px;height:26px;border-radius:50%;
+  background:linear-gradient(135deg,var(--rot-hell),var(--rot-dunkel));
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:900;
+  color:var(--weiss);flex-shrink:0;letter-spacing:0;
+}
+.profil-name{
+  font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;
+  letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.85);
+  max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+
+/* Profil Modal */
+.profil-modal-overlay{
+  position:fixed;inset:0;z-index:700;
+  background:rgba(109,23,35,.4);
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  display:flex;align-items:center;justify-content:center;
+  padding:24px;opacity:0;pointer-events:none;transition:opacity .22s;
+}
+.profil-modal-overlay.open{opacity:1;pointer-events:all;}
+.profil-modal-box{
+  background:rgba(248,244,238,.97);
+  backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);
+  border:1.5px solid rgba(255,255,255,.9);
+  border-radius:var(--radius);
+  box-shadow:0 24px 64px rgba(109,23,35,.2);
+  width:min(400px,92vw);padding:0;
+  transform:scale(.96) translateY(8px);transition:transform .22s;overflow:hidden;
+}
+.profil-modal-overlay.open .profil-modal-box{transform:none;}
+.profil-modal-header{
+  background:linear-gradient(135deg,var(--rot-dunkel),#8c1e2d);
+  padding:16px 20px;display:flex;justify-content:space-between;align-items:center;
+}
+.profil-modal-title{
+  font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:800;
+  letter-spacing:2px;text-transform:uppercase;color:var(--weiss);
+}
+.profil-modal-close{background:none;border:none;color:rgba(212,201,181,.7);
+  font-size:18px;cursor:pointer;padding:2px 6px;transition:color .15s;}
+.profil-modal-close:hover{color:var(--weiss);}
+.profil-modal-body{padding:20px;}
+.profil-hint{font-size:12px;color:var(--grau-light);margin-bottom:14px;line-height:1.5;}
+.profil-person-list{
+  display:flex;flex-direction:column;gap:6px;
+  max-height:240px;overflow-y:auto;margin-bottom:14px;
+}
+.profil-person-btn{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 14px;border-radius:var(--radius-sm);
+  background:rgba(255,255,255,.6);border:1.5px solid rgba(212,201,181,.6);
+  cursor:pointer;transition:all .18s;
+  font-family:'Barlow',sans-serif;font-size:14px;color:var(--grau);
+  text-align:left;width:100%;
+}
+.profil-person-btn:hover{border-color:var(--rot-mittel);background:rgba(255,255,255,.9);}
+.profil-person-btn.selected{
+  background:rgba(109,23,35,.08);border-color:var(--rot-dunkel);
+  color:var(--rot-dunkel);font-weight:600;
+}
+.profil-check{
+  width:18px;height:18px;border-radius:50%;
+  border:2px solid rgba(212,201,181,.7);flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-size:10px;
+  transition:all .15s;
+}
+.profil-person-btn.selected .profil-check{
+  background:var(--rot-dunkel);border-color:var(--rot-dunkel);color:#fff;
+}
+.profil-divider{
+  height:1px;background:rgba(212,201,181,.4);margin:12px 0;
+}
+.profil-custom-wrap{display:flex;gap:8px;}
+.profil-custom-input{
+  flex:1;background:rgba(255,255,255,.7);
+  border:1.5px solid rgba(212,201,181,.7);border-radius:var(--radius-sm);
+  padding:9px 12px;font-family:'Barlow',sans-serif;font-size:14px;color:var(--grau);
+  outline:none;transition:border-color .2s;
+}
+.profil-custom-input:focus{border-color:var(--rot-mittel);}
+.profil-clear-btn{
+  padding:8px 14px;border-radius:var(--radius-sm);
+  background:rgba(255,255,255,.55);color:var(--grau-light);
+  border:1.5px solid rgba(212,201,181,.5);
+  font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;
+  letter-spacing:1px;cursor:pointer;transition:all .18s;white-space:nowrap;
+}
+.profil-clear-btn:hover{color:var(--rot-hell);border-color:rgba(220,13,29,.3);}
+
+/* Meine Aufgaben section */
+.meine-aufgaben-list{display:flex;flex-direction:column;gap:8px;}
+.meine-aufgabe-item{
+  display:flex;align-items:flex-start;gap:10px;
+  background:var(--glass-bg);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border:1.5px solid var(--glass-border);
+  border-radius:var(--radius-sm);
+  box-shadow:var(--glass-shadow);
+  padding:11px 14px;
+  transition:box-shadow .2s,transform .2s;
+}
+.meine-aufgabe-item:hover{box-shadow:var(--glass-shadow-lg);transform:translateY(-1px);}
+.meine-aufgabe-item.fokus-aktiv{
+  border-color:rgba(41,128,185,.35);
+  background:rgba(41,128,185,.05);
+}
+.meine-aufgabe-body{flex:1;min-width:0;cursor:pointer;}
+.meine-aufgabe-titel{
+  font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;
+  color:var(--rot-dunkel);letter-spacing:.3px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.meine-aufgabe-meta{
+  font-size:11px;color:var(--grau-light);margin-top:3px;
+  display:flex;gap:8px;flex-wrap:wrap;align-items:center;
+}
+.meine-fokus-btn{
+  flex-shrink:0;align-self:center;
+  background:none;
+  border:1.5px solid rgba(212,201,181,.6);
+  border-radius:var(--radius-pill);padding:4px 11px;
+  font-family:'Barlow Condensed',sans-serif;font-size:9px;font-weight:700;
+  letter-spacing:1px;text-transform:uppercase;
+  cursor:pointer;color:var(--grau);transition:all .18s;
+}
+.meine-fokus-btn:hover{border-color:rgba(41,128,185,.5);color:#2980b9;}
+.meine-fokus-btn.aktiv{
+  background:rgba(41,128,185,.12);border-color:rgba(41,128,185,.45);
+  color:#2980b9;
+}
+
+/* ── EXIT MODAL ──────────────────────────────── */
+.exit-modal-overlay{
+  position:fixed;inset:0;z-index:9000;
+  background:rgba(109,23,35,.5);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  display:flex;align-items:center;justify-content:center;
+  padding:24px;opacity:0;pointer-events:none;transition:opacity .25s;
+}
+.exit-modal-overlay.open{opacity:1;pointer-events:all;}
+.exit-modal-box{
+  background:rgba(248,244,238,.97);
+  backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);
+  border:1.5px solid rgba(255,255,255,.9);
+  border-radius:var(--radius);
+  box-shadow:0 24px 64px rgba(109,23,35,.22);
+  width:min(400px,90vw);overflow:hidden;
+  transform:scale(.96) translateY(10px);transition:transform .25s;
+}
+.exit-modal-overlay.open .exit-modal-box{transform:none;}
+.exit-modal-header{
+  background:linear-gradient(135deg,var(--rot-dunkel),#8c1e2d);
+  padding:16px 22px;
+  display:flex;align-items:center;gap:12px;
+}
+.exit-modal-icon{font-size:24px;}
+.exit-modal-title{
+  font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:800;
+  letter-spacing:2px;text-transform:uppercase;color:var(--weiss);
+}
+.exit-modal-body{padding:22px 22px 18px;}
+.exit-modal-text{
+  font-size:13px;color:var(--grau);line-height:1.6;margin-bottom:6px;
+}
+.exit-modal-sub{
+  font-size:11px;color:var(--grau-light);line-height:1.5;margin-bottom:20px;
+}
+.exit-modal-actions{display:flex;gap:10px;flex-wrap:wrap;}
+.exit-modal-actions .btn-primary{flex:1;text-align:center;padding:12px;}
+.exit-modal-actions .btn-ghost{flex:1;text-align:center;padding:11px;}
+
 /* ── RESPONSIVE ──────────────────────────────── */
 
 /* Tablet */
@@ -617,20 +1368,21 @@ footer{background:rgba(255,255,255,.5);backdrop-filter:blur(10px);
   .form-row2{grid-template-columns:1fr;}
   .eis-explain-grid{grid-template-columns:1fr;}
   .footer-text{display:none;}
+  .eis-dash-grid{grid-template-columns:1fr 1fr;}
 }
 
 /* Mobile (≤ 600px) */
 @media(max-width:600px){
   /* Header */
-  header{
-    height:auto;padding:12px 16px;
-    flex-wrap:nowrap;gap:0;
-  }
+  .hdr-top{height:auto;padding:12px 16px;}
   .hdr-logo .sub{font-size:8px;letter-spacing:2px;}
   .hdr-logo .name{font-size:20px;letter-spacing:1.5px;}
   .hdr-logo{padding-left:10px;}
   .hdr-title{font-size:10px;letter-spacing:1.5px;}
   .hdr-orb1,.hdr-orb2{display:none;}
+  .nav-bar{padding:0 8px;}
+  .nav-btn{font-size:11px;padding:9px 12px;letter-spacing:1px;}
+  .nav-btn .nav-icon{font-size:13px;}
 
   /* Main padding */
   main{padding:16px 12px 100px;}
@@ -746,6 +1498,13 @@ footer{background:rgba(255,255,255,.5);backdrop-filter:blur(10px);
   /* Empty state */
   .empty-state{padding:36px 16px;}
   .empty-icon{font-size:30px;}
+
+  /* Dashboard */
+  .dash-grid{grid-template-columns:1fr 1fr;gap:12px;}
+  .kpi-value{font-size:32px;}
+  .eis-dash-grid{grid-template-columns:1fr 1fr;gap:10px;}
+  .eis-dash-card{padding:14px 12px;}
+  .eis-dash-card .kpi-value{font-size:26px;}
 }
 
 /* Very small (≤ 380px) */
@@ -759,6 +1518,32 @@ footer{background:rgba(255,255,255,.5);backdrop-filter:blur(10px);
 </style>
 </head>
 <body>
+
+<!-- PROFIL MODAL -->
+<div class="profil-modal-overlay" id="profil-modal">
+  <div class="profil-modal-box">
+    <div class="profil-modal-header">
+      <span class="profil-modal-title">👤 Mein Profil</span>
+      <button class="profil-modal-close" onclick="closeProfilModal()">✕</button>
+    </div>
+    <div class="profil-modal-body">
+      <p class="profil-hint">Wähle deinen Namen aus der Liste der angelegten Personen, oder gib ihn manuell ein. Deine Aufgaben werden dann in der Kommandozentrale separat angezeigt.</p>
+      <div class="profil-person-list" id="profil-person-list">
+        <!-- filled by JS -->
+      </div>
+      <div class="profil-divider"></div>
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--rot-dunkel);margin-bottom:8px;">Oder manuell eingeben</div>
+      <div class="profil-custom-wrap">
+        <input type="text" class="profil-custom-input" id="profil-custom-input"
+          placeholder="Deinen Namen eingeben …" autocomplete="off"
+          oninput="profilCustomInput(this.value)"
+          onkeydown="if(event.key==='Enter'&&this.value.trim())profilWaehlen(this.value.trim())"
+          onblur="if(this.value.trim()&&this.value.trim()!==meinName)profilWaehlen(this.value.trim())"/>
+        <button class="profil-clear-btn" onclick="profilLoeschen()">Zurücksetzen</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- EDIT MODAL -->
 <div class="edit-modal-overlay" id="edit-modal">
@@ -781,8 +1566,12 @@ footer{background:rgba(255,255,255,.5);backdrop-filter:blur(10px);
       </div>
       <div class="edit-modal-row single">
         <div class="form-group">
-          <label>Beschreibung</label>
-          <textarea id="edit-desc" placeholder="Details zur Aufgabe …" oninput="markEditChanged()"></textarea>
+          <label style="display:flex;justify-content:space-between;">
+            Beschreibung
+            <span id="edit-desc-count" style="font-weight:400;color:var(--grau-light);letter-spacing:0;">0 / 300</span>
+          </label>
+          <textarea id="edit-desc" placeholder="Details zur Aufgabe …" maxlength="300"
+            oninput="markEditChanged();updateDescCount(this)"></textarea>
         </div>
       </div>
       <div class="edit-modal-row">
@@ -790,8 +1579,8 @@ footer{background:rgba(255,255,255,.5);backdrop-filter:blur(10px);
           <label>Frist</label>
           <input type="date" id="edit-frist" onchange="markEditChanged()"/>
         </div>
-        <div class="form-group">
-          <label>Fortschritt</label>
+        <div class="form-group" id="edit-fort-group">
+          <label>Fortschritt (manuell)</label>
           <div style="display:flex;align-items:center;gap:10px;margin-top:4px;">
             <input type="range" class="progress-slider" id="edit-fortschritt" min="0" max="100"
               style="flex:1;" oninput="markEditChanged();document.getElementById('edit-fort-val').textContent=this.value+'%'"/>
@@ -799,13 +1588,30 @@ footer{background:rgba(255,255,255,.5);backdrop-filter:blur(10px);
           </div>
         </div>
       </div>
-      <div class="form-group" style="margin-bottom:0;">
+      <div class="form-group" style="margin-bottom:16px;">
         <label>Priorität – Eisenhower Matrix</label>
         <div class="eis-grid" style="margin-top:4px;">
           <button class="eis-btn" data-val="q1" onclick="selectEditEis(this)">🔴 Dringend<br>+ Wichtig</button>
           <button class="eis-btn" data-val="q2" onclick="selectEditEis(this)">🟥 Wichtig<br>nicht dringend</button>
           <button class="eis-btn" data-val="q3" onclick="selectEditEis(this)">🟫 Dringend<br>nicht wichtig</button>
           <button class="eis-btn" data-val="q4" onclick="selectEditEis(this)">⬜ Weder<br>noch</button>
+        </div>
+      </div>
+
+      <!-- TEILAUFGABEN -->
+      <div style="border-top:1.5px solid rgba(212,201,181,.5);padding-top:16px;margin-bottom:0;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+          <span style="font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--rot-dunkel);">
+            Teilaufgaben
+          </span>
+          <button class="btn-secondary" style="padding:5px 14px;font-size:10px;" onclick="addSubtaskRow()">+ Hinzufügen</button>
+        </div>
+        <div id="edit-subtask-list" style="display:flex;flex-direction:column;gap:8px;"></div>
+        <div id="edit-subtask-hint" style="font-size:11px;color:var(--grau-light);margin-top:6px;display:none;">
+          ⚠ Prozentsätze ergeben mehr als 100% – bitte prüfen.
+        </div>
+        <div style="font-size:11px;color:var(--grau-light);margin-top:8px;line-height:1.5;">
+          Ohne Prozent-Angabe bleibt der manuelle Regler aktiv. Mit Prozent-Angabe wird der Fortschritt aus den Teilaufgaben berechnet.
         </div>
       </div>
     </div>
@@ -836,6 +1642,7 @@ footer{background:rgba(255,255,255,.5);backdrop-filter:blur(10px);
           CSV-Dateien (.csv) und Excel-Dateien (.xlsx, .xls) werden unterstützt.
           Die erste Zeile muss die Spaltenbezeichnungen enthalten.
           Spalten können in beliebiger Reihenfolge angeordnet sein – die App erkennt sie automatisch.
+          Teilaufgaben können nach dem Import über das Bearbeiten-Modal (✎) einer Aufgabe hinzugefügt werden.
         </p>
       </div>
 
@@ -865,7 +1672,7 @@ footer{background:rgba(255,255,255,.5);backdrop-filter:blur(10px);
           <tr>
             <td><span class="col-name">Beschreibung</span></td>
             <td><span class="opt">Optional</span></td>
-            <td>Erklärung oder Details zur Aufgabe</td>
+            <td>Details zur Aufgabe (max. 300 Zeichen)</td>
           </tr>
           <tr>
             <td><span class="col-name">Frist</span></td>
@@ -878,6 +1685,9 @@ footer{background:rgba(255,255,255,.5);backdrop-filter:blur(10px);
             <td>Zahl von 0 bis 100 (Prozent, Standard: 0)</td>
           </tr>
         </table>
+        <p style="font-size:11px;color:var(--grau-light);margin-top:6px;">
+          Hinweis: Teilaufgaben können nicht per CSV importiert werden. Sie lassen sich nach dem Import über das ✎-Symbol auf jeder Aufgabenkarte hinzufügen.
+        </p>
       </div>
 
       <div class="modal-section">
@@ -940,15 +1750,36 @@ Tom Keller;Newsletter planen;q4;Themen sammeln;;0</div>
 
 <!-- HEADER -->
 <header>
-  <div class="hdr-orb hdr-orb1"></div>
-  <div class="hdr-orb hdr-orb2"></div>
-  <div class="hdr-logo">
-    <span class="sub">Kampfsportschulen</span>
-    <span class="name">RANDORI PRO</span>
+  <div class="hdr-top">
+    <div class="hdr-orb hdr-orb1"></div>
+    <div class="hdr-orb hdr-orb2"></div>
+    <div class="hdr-logo">
+      <span class="sub">Kampfsportschulen</span>
+      <span class="name">RANDORI PRO</span>
+    </div>
+    <div class="hdr-title" id="hdr-page-title">Aufgabenverwaltung</div>
+    <button class="profil-bar" id="profil-bar" onclick="openProfilModal()" title="Mein Profil">
+      <div class="profil-avatar" id="profil-avatar">?</div>
+      <span class="profil-name" id="profil-name-display">Mein Profil</span>
+    </button>
   </div>
-  <div class="hdr-title">Aufgabenverwaltung</div>
+  <nav class="nav-bar">
+    <button class="nav-btn" id="nav-kommando" onclick="showPage('kommando')">
+      <span class="nav-icon">⚡</span> Kommandozentrale
+    </button>
+    <button class="nav-btn active" id="nav-aufgaben" onclick="showPage('aufgaben')">
+      <span class="nav-icon">📋</span> Aufgaben
+    </button>
+    <button class="nav-btn" id="nav-dashboard" onclick="showPage('dashboard')">
+      <span class="nav-icon">📊</span> Dashboard
+    </button>
+    <button class="nav-btn" id="nav-hilfe" onclick="showPage('hilfe')">
+      <span class="nav-icon">📖</span> Anleitung
+    </button>
+  </nav>
 </header>
 
+<div id="page-aufgaben">
 <main>
 
   <!-- MANUELLE EINGABE -->
@@ -973,9 +1804,12 @@ Tom Keller;Newsletter planen;q4;Themen sammeln;;0</div>
     </div>
     <div class="form-row2">
       <div class="form-group">
-        <label>Beschreibung</label>
-        <textarea id="inp-desc" placeholder="Kurze Erklärung der Aufgabe …"></textarea>
-      </div>
+          <label style="display:flex;justify-content:space-between;align-items:center;">
+            Beschreibung
+            <span id="new-desc-count" style="font-family:'Barlow',sans-serif;font-size:10px;font-weight:400;color:var(--grau-light);letter-spacing:0;text-transform:none;">0 / 300</span>
+          </label>
+          <textarea id="inp-desc" maxlength="300" placeholder="Kurze Erklärung der Aufgabe …" oninput="document.getElementById('new-desc-count').textContent=this.value.length+' / 300'"></textarea>
+        </div>
       <div class="form-group">
         <label>Priorität – Eisenhower Matrix</label>
         <div class="eis-grid">
@@ -989,45 +1823,6 @@ Tom Keller;Newsletter planen;q4;Themen sammeln;;0</div>
     <div class="form-footer">
       <span class="form-error" id="form-fehler"></span>
       <button class="btn-primary" onclick="aufgabeHinzufuegen()">+ Aufgabe speichern</button>
-    </div>
-  </div>
-
-  <!-- IMPORT -->
-  <div class="section-label">
-    <span class="pill">Import</span>
-    <span class="line"></span>
-  </div>
-  <div class="glass-card">
-    <div class="upload-zone" id="upload-zone">
-      <input type="file" id="file-input" accept=".csv,.xlsx,.xls" onchange="handleFile(this.files[0])"/>
-      <div class="upload-icon">📂</div>
-      <div class="upload-title">CSV oder Excel hochladen</div>
-      <div class="upload-sub">Datei hierher ziehen oder klicken zum Auswählen · .csv, .xlsx, .xls</div>
-      <button class="upload-hint-link" onclick="event.stopPropagation();openModal()">
-        Wie muss die Datei aufgebaut sein?
-      </button>
-    </div>
-
-    <div class="import-preview" id="import-preview">
-      <div class="preview-header">
-        <div>
-          <div class="preview-title" id="preview-filename">–</div>
-          <div class="preview-meta" id="preview-meta">–</div>
-        </div>
-        <button class="btn-ghost" onclick="resetImport()">✕ Abbrechen</button>
-      </div>
-      <div class="import-summary" id="import-summary"></div>
-      <div class="preview-table-wrap">
-        <table class="preview-table" id="preview-table">
-          <thead id="preview-thead"></thead>
-          <tbody id="preview-tbody"></tbody>
-        </table>
-      </div>
-      <div class="import-actions">
-        <button class="btn-primary" id="import-btn" onclick="importConfirm()">✓ Aufgaben importieren</button>
-        <button class="btn-ghost" onclick="openModal()">Format-Hilfe</button>
-        <span class="form-error" id="import-error"></span>
-      </div>
     </div>
   </div>
 
@@ -1045,8 +1840,210 @@ Tom Keller;Newsletter planen;q4;Themen sammeln;;0</div>
   <div class="personen-grid" id="personen-grid"></div>
 
 </main>
+</div>
 
-<footer>
+<!-- KOMMANDOZENTRALE PAGE -->
+<div id="page-kommando">
+<main>
+
+  <!-- MEINE AUFGABEN (full width, shown only if profile set) -->
+  <div id="meine-aufgaben-section" style="display:none;margin-bottom:28px;">
+    <div class="section-label">
+      <span class="pill" id="meine-aufgaben-pill">👤 Meine Aufgaben</span>
+      <span class="line"></span>
+      <span style="font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--grau-light);white-space:nowrap;" id="meine-aufgaben-name"></span>
+    </div>
+    <div class="glass-card" style="margin-bottom:0;">
+      <div class="meine-aufgaben-list" id="meine-aufgaben-list"></div>
+    </div>
+  </div>
+
+  <!-- ROW 1: Schnellerfassung + Schnell-Notiz -->
+  <div class="kommando-grid" style="margin-bottom:0;">
+
+    <!-- Schnelle Aufgabe anlegen -->
+    <div>
+      <div class="section-label"><span class="pill">⚡ Schnelle Aufgabe</span><span class="line"></span></div>
+      <div class="glass-card" style="margin-bottom:0;">
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <div class="form-group">
+            <label>Person</label>
+            <input type="text" id="k-person" placeholder="Name …" autocomplete="off"/>
+          </div>
+          <div class="form-group">
+            <label>Aufgabentitel</label>
+            <input type="text" id="k-titel" placeholder="Was muss erledigt werden?" autocomplete="off"/>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div class="form-group">
+              <label>Frist</label>
+              <input type="date" id="k-frist"/>
+            </div>
+            <div class="form-group">
+              <label>Priorität</label>
+              <select id="k-prio" style="background:rgba(255,255,255,.7);border:1.5px solid rgba(212,201,181,.7);border-radius:var(--radius-sm);padding:10px 12px;font-family:'Barlow',sans-serif;font-size:14px;color:var(--grau);outline:none;-webkit-appearance:none;">
+                <option value="q1">🔴 Dringend + Wichtig</option>
+                <option value="q2">🟥 Wichtig, nicht dringend</option>
+                <option value="q3">🟫 Dringend, nicht wichtig</option>
+                <option value="q4" selected>⬜ Weder noch</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-footer" style="margin-top:4px;">
+            <span class="form-error" id="k-fehler"></span>
+            <button class="btn-primary" onclick="kommandoAufgabe()">+ Aufgabe anlegen</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Schnell-Notiz -->
+    <div>
+      <div class="section-label"><span class="pill">📝 Schnell-Notiz</span><span class="line"></span></div>
+      <div class="glass-card" style="margin-bottom:0;">
+        <textarea class="notiz-area" id="notiz-area" placeholder="Gedanken, Ideen, Reminders … wird automatisch gespeichert."></textarea>
+        <div class="notiz-meta">
+          <span id="notiz-saved" style="color:var(--grau-light);">Nicht gespeichert</span>
+          <span id="notiz-count">0 Zeichen</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ROW 2: Heute-Fokus + Überfällig/Demnächst -->
+  <div class="kommando-grid" style="margin-top:28px;">
+
+    <!-- Heute-Fokus -->
+    <div>
+      <div class="section-label"><span class="pill">🎯 Heute-Fokus</span><span class="line"></span></div>
+      <div class="glass-card" style="margin-bottom:0;">
+        <div id="fokus-list"><div class="focus-empty">Noch keine Aufgaben als Fokus markiert.<br>Klicke auf „Fokus" bei einer Aufgabe unten.</div></div>
+      </div>
+    </div>
+
+    <!-- Überfällig & Demnächst -->
+    <div>
+      <div class="section-label"><span class="pill">🚨 Überfällig & Demnächst</span><span class="line"></span></div>
+      <div class="glass-card" style="margin-bottom:0;">
+        <div id="alert-list"><div class="focus-empty">Keine überfälligen oder demnächst fälligen Aufgaben.</div></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ROW 3: Import + Top-10 -->
+  <div class="kommando-grid" style="margin-top:28px;">
+
+    <!-- Import -->
+    <div>
+      <div class="section-label"><span class="pill">📂 Import</span><span class="line"></span></div>
+      <div class="glass-card" style="margin-bottom:0;">
+        <div class="upload-zone" id="upload-zone">
+          <input type="file" id="file-input" accept=".csv,.xlsx,.xls" onchange="handleFile(this.files[0])"/>
+          <div class="upload-icon">📂</div>
+          <div class="upload-title">CSV oder Excel hochladen</div>
+          <div class="upload-sub">Datei hierher ziehen oder klicken · .csv, .xlsx, .xls</div>
+          <button class="upload-hint-link" onclick="event.stopPropagation();openModal()">
+            Wie muss die Datei aufgebaut sein?
+          </button>
+        </div>
+        <div class="import-preview" id="import-preview">
+          <div class="preview-header">
+            <div>
+              <div class="preview-title" id="preview-filename">–</div>
+              <div class="preview-meta" id="preview-meta">–</div>
+            </div>
+            <button class="btn-ghost" onclick="resetImport()">✕ Abbrechen</button>
+          </div>
+          <div class="import-summary" id="import-summary"></div>
+          <div class="preview-table-wrap">
+            <table class="preview-table" id="preview-table">
+              <thead id="preview-thead"></thead>
+              <tbody id="preview-tbody"></tbody>
+            </table>
+          </div>
+          <div class="import-actions">
+            <button class="btn-primary" id="import-btn" onclick="importConfirm()">✓ Importieren</button>
+            <button class="btn-ghost" onclick="openModal()">Format-Hilfe</button>
+            <span class="form-error" id="import-error"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Top-10 ohne Frist -->
+    <div>
+      <div class="section-label"><span class="pill">🏆 Top 10 ohne Frist</span><span class="line"></span></div>
+      <div class="glass-card" style="margin-bottom:0;">
+        <div id="top10-list"><div class="focus-empty">Keine Aufgaben ohne Frist vorhanden.</div></div>
+      </div>
+    </div>
+
+  </div>
+
+</main>
+</div>
+<div id="page-dashboard">
+<main>
+  <div class="section-label" style="margin-top:0;">
+    <span class="pill">Gesamtübersicht</span>
+    <span class="line"></span>
+  </div>
+
+  <!-- KPI ROW -->
+  <div class="dash-grid" id="dash-kpi-grid">
+    <!-- filled by JS -->
+  </div>
+
+  <!-- EISENHOWER -->
+  <div class="section-label">
+    <span class="pill">Eisenhower Matrix</span>
+    <span class="line"></span>
+  </div>
+  <div class="eis-dash-grid" id="dash-eis-grid">
+    <!-- filled by JS -->
+  </div>
+
+  <!-- PERSONEN -->
+  <div class="section-label" style="margin-top:28px;">
+    <span class="pill">Fortschritt pro Person</span>
+    <span class="line"></span>
+  </div>
+  <div class="person-dash-list" id="dash-person-list">
+    <!-- filled by JS -->
+  </div>
+
+</main>
+</div>
+
+<!-- HILFE PAGE -->
+<div id="page-hilfe">
+<main>
+
+  <!-- TOUR SECTION -->
+  <div class="section-label">
+    <span class="pill">📖 Schnell-Tour</span>
+    <span class="line"></span>
+    <span style="font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--grau-light);white-space:nowrap;">6 Schritte zum Start</span>
+  </div>
+
+  <!-- Progress dots -->
+  <div class="tour-progress" id="tour-progress"></div>
+
+  <!-- Tour cards (rendered by JS) -->
+  <div id="tour-cards" style="margin-bottom:36px;"></div>
+
+  <!-- DETAILED GUIDE -->
+  <div class="section-label">
+    <span class="pill">📚 Detaillierte Anleitung</span>
+    <span class="line"></span>
+  </div>
+
+  <div id="guide-sections"></div>
+
+</main>
+</div>
   <div class="footer-accent"></div>
   <div class="footer-text">RANDORI PRO · Kampfsportschulen</div>
   <div class="footer-count" id="task-count">0 Aufgaben</div>
@@ -1062,6 +2059,30 @@ Tom Keller;Newsletter planen;q4;Themen sammeln;;0</div>
 </footer>
 
 <div class="toast" id="toast"></div>
+<canvas id="impact-canvas"></canvas>
+<div id="impact-flash"></div>
+
+<!-- EXIT / BACKUP REMINDER MODAL -->
+<div class="exit-modal-overlay" id="exit-modal">
+  <div class="exit-modal-box">
+    <div class="exit-modal-header">
+      <span class="exit-modal-icon">💾</span>
+      <span class="exit-modal-title">Daten sichern?</span>
+    </div>
+    <div class="exit-modal-body">
+      <p class="exit-modal-text">
+        Du verlässt RANDORI PRO. Deine Aufgaben liegen im Browser-Speicher – exportiere sie kurz, um morgen sicher weiterzuarbeiten.
+      </p>
+      <p class="exit-modal-sub">
+        Die Export-Datei kannst du jederzeit wieder importieren – auf diesem Gerät oder einem anderen.
+      </p>
+      <div class="exit-modal-actions">
+        <button class="btn-primary" onclick="exitMitExport()">⬇ Jetzt exportieren & schließen</button>
+        <button class="btn-ghost" onclick="exitOhneExport()">Ohne Export schließen</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script>
 /* ─────────────── STATE ─────────────────── */
@@ -1069,6 +2090,8 @@ let aufgaben = JSON.parse(localStorage.getItem('rp_auf4') || '[]');
 let selectedEis = null;
 let pendingImport = [];
 let hiddenPersonen = new Set(JSON.parse(localStorage.getItem('rp_hidden') || '[]'));
+let fokusIds = new Set(JSON.parse(localStorage.getItem('rp_fokus') || '[]'));
+let meinName = localStorage.getItem('rp_mein_name') || '';
 
 const EIS_LABEL = {
   q1:'Dringend + Wichtig', q2:'Wichtig, nicht dringend',
@@ -1080,6 +2103,58 @@ const EIS_ORDER = {q1:1,q2:2,q3:3,q4:4};
 function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function slug(s){ return s.replace(/[^a-zA-Z0-9]/g,'_'); }
 function save(){ localStorage.setItem('rp_auf4', JSON.stringify(aufgaben)); }
+
+/* ─────────────── EXIT REMINDER ─────────────── */
+let exitConfirmed = false;
+
+// Intercept page close/unload
+window.addEventListener('beforeunload', function(e){
+  if(exitConfirmed || !aufgaben.length) return;
+  // Show our custom modal instead of browser default
+  // (modern browsers block custom beforeunload dialogs – we show ours on visibilitychange)
+});
+
+// visibilitychange fires reliably on mobile and on tab-switch/close
+document.addEventListener('visibilitychange', function(){
+  if(document.visibilityState === 'hidden' && !exitConfirmed && aufgaben.length > 0){
+    // Store that we should show the modal next time the page becomes visible
+    sessionStorage.setItem('rp_show_exit_prompt', '1');
+  }
+  if(document.visibilityState === 'visible'){
+    const should = sessionStorage.getItem('rp_show_exit_prompt');
+    if(should){
+      sessionStorage.removeItem('rp_show_exit_prompt');
+      document.getElementById('exit-modal').classList.add('open');
+    }
+  }
+});
+
+// Also intercept clicks on links / close button via pagehide
+window.addEventListener('pagehide', function(){
+  if(!exitConfirmed && aufgaben.length > 0){
+    sessionStorage.setItem('rp_show_exit_prompt', '1');
+  }
+});
+
+function exitMitExport(){
+  exitConfirmed = true;
+  document.getElementById('exit-modal').classList.remove('open');
+  exportJSON();
+}
+
+function exitOhneExport(){
+  exitConfirmed = true;
+  document.getElementById('exit-modal').classList.remove('open');
+}
+
+// Check on load if we should show the modal (e.g. navigated back)
+window.addEventListener('load', function(){
+  const should = sessionStorage.getItem('rp_show_exit_prompt');
+  if(should){
+    sessionStorage.removeItem('rp_show_exit_prompt');
+    setTimeout(()=>document.getElementById('exit-modal').classList.add('open'), 600);
+  }
+});
 
 function fristInfo(frist){
   if(!frist) return null;
@@ -1107,7 +2182,7 @@ document.getElementById('format-modal').addEventListener('click', e=>{
 
 /* ─────────────── TEMPLATE DOWNLOAD ─── */
 function downloadTemplate(){
-  const csv='Person;Aufgabe;Priorität;Beschreibung;Frist;Fortschritt\nMax Müller;Jahresbericht erstellen;q1;Für die Geschäftsleitung;31.03.2026;40\nLisa Braun;Website aktualisieren;q2;Neue Kurse einpflegen;15.04.2026;0\nMax Müller;Rechnungen prüfen;q3;;28.03.2026;\nTom Keller;Newsletter planen;q4;Themen sammeln;;0';
+  const csv='Person;Aufgabe;Priorität;Beschreibung;Frist;Fortschritt\nMax Müller;Jahresbericht erstellen;q1;Für die Geschäftsleitung (max. 300 Zeichen);31.03.2026;40\nLisa Braun;Website aktualisieren;q2;Neue Kurse einpflegen;15.04.2026;0\nMax Müller;Rechnungen prüfen;q3;;28.03.2026;\nTom Keller;Newsletter planen;q4;Themen sammeln;;0';
   const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a'); a.href=url; a.download='randori_pro_aufgaben_vorlage.csv';
@@ -1115,14 +2190,18 @@ function downloadTemplate(){
 }
 
 /* ─────────────── DRAG & DROP ───────── */
-const uz=document.getElementById('upload-zone');
-uz.addEventListener('dragover',e=>{e.preventDefault();uz.classList.add('drag-over');});
-uz.addEventListener('dragleave',()=>uz.classList.remove('drag-over'));
-uz.addEventListener('drop',e=>{
-  e.preventDefault(); uz.classList.remove('drag-over');
-  const f=e.dataTransfer.files[0];
-  if(f) handleFile(f);
-});
+function initUploadZone(){
+  const uz=document.getElementById('upload-zone');
+  if(!uz||uz._dndBound) return;
+  uz._dndBound=true;
+  uz.addEventListener('dragover',e=>{e.preventDefault();uz.classList.add('drag-over');});
+  uz.addEventListener('dragleave',()=>uz.classList.remove('drag-over'));
+  uz.addEventListener('drop',e=>{
+    e.preventDefault(); uz.classList.remove('drag-over');
+    const f=e.dataTransfer.files[0];
+    if(f) handleFile(f);
+  });
+}
 
 /* ─────────────── FILE PARSING ──────── */
 function handleFile(file){
@@ -1350,9 +2429,11 @@ function resetImport(){
 function exportJSON(){
   if(!aufgaben.length){ showToast('Keine Aufgaben zum Exportieren.','error'); return; }
   const payload = {
-    version: 1,
+    version: 2,
     exportiert: new Date().toISOString(),
-    aufgaben: aufgaben
+    aufgaben: aufgaben,
+    fokus: [...fokusIds],
+    notiz: localStorage.getItem('rp_notiz') || ''
   };
   const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
   const url  = URL.createObjectURL(blob);
@@ -1372,26 +2453,28 @@ function importJSON(input){
   reader.onload = function(e){
     try{
       const data = JSON.parse(e.target.result);
-      // Support both {aufgaben:[...]} and plain array
       const liste = Array.isArray(data) ? data : (data.aufgaben || null);
       if(!Array.isArray(liste)) throw new Error('Kein gültiges Aufgaben-Format.');
 
-      // Validate entries
       const valide = liste.filter(a =>
         a && typeof a.person === 'string' && typeof a.titel === 'string'
       ).map(a => ({
         id:           typeof a.id === 'number' ? a.id : Date.now() + Math.random(),
         person:       String(a.person).trim(),
         titel:        String(a.titel).trim(),
-        desc:         String(a.desc || '').trim(),
+        desc:         String(a.desc || '').trim().slice(0,300),
         frist:        a.frist || '',
         eis:          ['q1','q2','q3','q4'].includes(a.eis) ? a.eis : 'q4',
-        fortschritt:  Math.min(100, Math.max(0, parseInt(a.fortschritt) || 0))
+        fortschritt:  Math.min(100, Math.max(0, parseInt(a.fortschritt) || 0)),
+        subtasks:     Array.isArray(a.subtasks) ? a.subtasks.map(s=>({
+          name:  String(s.name||'').trim(),
+          pct:   Math.min(100,Math.max(0,parseInt(s.pct)||0)),
+          done:  !!s.done
+        })).filter(s=>s.name) : []
       }));
 
       if(!valide.length) throw new Error('Keine gültigen Aufgaben in der Datei gefunden.');
 
-      // Merge: add only entries not already present (by id)
       const existingIds = new Set(aufgaben.map(a => a.id));
       const neu = valide.filter(a => !existingIds.has(a.id));
       const doppelt = valide.length - neu.length;
@@ -1399,7 +2482,16 @@ function importJSON(input){
       aufgaben = [...aufgaben, ...neu];
       save();
 
-      // Full re-render
+      // Restore fokus if present
+      if(Array.isArray(data.fokus)){
+        data.fokus.forEach(id => fokusIds.add(id));
+        saveFokus();
+      }
+      // Restore notiz if present and local is empty
+      if(data.notiz && !localStorage.getItem('rp_notiz')){
+        localStorage.setItem('rp_notiz', data.notiz);
+      }
+
       vollNeuRendern();
 
       let msg = `✓ ${neu.length} Aufgaben geladen`;
@@ -1572,11 +2664,27 @@ function buildPersonCol(person,sl){
   return col;
 }
 
+function calcFortschritt(a){
+  // If any subtask has a % weight, compute from subtasks
+  const subs = a.subtasks || [];
+  const weighted = subs.filter(s => s.pct > 0);
+  if(weighted.length === 0) return a.fortschritt; // manual
+  const totalWeight = weighted.reduce((s,t) => s+t.pct, 0);
+  const done = weighted.filter(s=>s.done).reduce((s,t) => s+t.pct, 0);
+  return Math.min(100, Math.round(totalWeight > 0 ? (done/totalWeight)*100 : 0));
+}
+
 function buildCard(a){
   const fi=fristInfo(a.frist);
+  const hasDesc = !!a.desc;
+  const subs = a.subtasks || [];
+  const hasSubs = subs.length > 0;
+  const hasWeighted = subs.some(s=>s.pct>0);
+  const fort = hasWeighted ? calcFortschritt(a) : a.fortschritt;
+  const doneSubs = subs.filter(s=>s.done).length;
+
   const div=document.createElement('div');
   div.className='task-card'; div.id='tcard-'+a.id;
-  const hasDesc = !!a.desc;
   div.innerHTML=`
     <div class="task-inner">
       <div class="task-prio-stripe stripe-${a.eis}"></div>
@@ -1592,10 +2700,30 @@ function buildCard(a){
         <div class="task-desc" id="desc-${a.id}">${esc(a.desc)}</div>
         `:''}
         ${fi?`<div class="task-frist ${fi.cls}">${fi.text}</div>`:''}
+        ${hasSubs?`
+        <div class="subtask-toggle open" id="subtog-${a.id}">
+          <span class="subtask-toggle-label">▶ Teilaufgaben</span>
+          <span class="subtask-progress-mini">${doneSubs}/${subs.length}</span>
+          <span class="subtask-toggle-arrow">▶</span>
+        </div>
+        <div class="subtask-list open" id="sublist-${a.id}">
+          ${subs.map((s,i)=>`
+            <div class="subtask-item">
+              <input type="checkbox" class="subtask-check" ${s.done?'checked':''} data-aid="${a.id}" data-idx="${i}"/>
+              <span class="subtask-name${s.done?' done':''}">${esc(s.name)}</span>
+              ${s.pct>0?`<span class="subtask-pct-badge">${s.pct}%</span>`:''}
+            </div>`).join('')}
+        </div>
+        `:''}
         <div class="task-progress-row">
           <span class="prog-label">Fortschritt</span>
-          <input type="range" class="progress-slider" min="0" max="100" value="${a.fortschritt}"/>
-          <span class="prog-val" id="pval-${a.id}">${a.fortschritt}%</span>
+          ${hasWeighted
+            ? `<div style="flex:1;background:rgba(212,201,181,.4);border-radius:999px;height:6px;overflow:hidden;">
+                <div style="height:100%;width:${fort}%;background:linear-gradient(to right,var(--rot-hell),var(--rot-mittel));border-radius:999px;transition:width .4s ease;"></div>
+               </div>`
+            : `<input type="range" class="progress-slider" min="0" max="100" value="${fort}"/>`
+          }
+          <span class="prog-val" id="pval-${a.id}">${fort}%</span>
         </div>
       </div>
       <div class="task-actions">
@@ -1603,12 +2731,49 @@ function buildCard(a){
         <button class="task-del" title="Aufgabe löschen" data-id="${a.id}">✕</button>
       </div>
     </div>`;
+
   div.querySelector('.task-del').addEventListener('click', e=>{ e.stopPropagation(); loeschen(a.id); });
   div.querySelector('.task-edit').addEventListener('click', e=>{ e.stopPropagation(); openEditModal(a.id); });
+
   if(hasDesc){
     div.querySelector('.task-toggle-hint').addEventListener('click', e=>{ e.stopPropagation(); toggleDesc(a.id); });
   }
-  bindSlider(div, a);
+  if(hasSubs){
+    div.querySelector('#subtog-'+a.id).addEventListener('click', e=>{ e.stopPropagation(); toggleSublist(a.id); });
+    div.querySelectorAll('.subtask-check').forEach(cb=>{
+      cb.addEventListener('change', e=>{
+        e.stopPropagation();
+        const idx = parseInt(cb.dataset.idx);
+        const aufg = aufgaben.find(x=>x.id===a.id);
+        if(!aufg) return;
+        aufg.subtasks[idx].done = cb.checked;
+        // update name strikethrough inline
+        const nameEl = cb.nextElementSibling;
+        if(nameEl) nameEl.classList.toggle('done', cb.checked);
+        // recalc progress
+        const newFort = calcFortschritt(aufg);
+        const valEl = document.getElementById('pval-'+a.id);
+        if(valEl) valEl.textContent = newFort+'%';
+        // update mini bar if weighted
+        const hasW = aufg.subtasks.some(s=>s.pct>0);
+        if(hasW){
+          const barFill = div.querySelector('.task-progress-row div div');
+          if(barFill) barFill.style.width = newFort+'%';
+        } else {
+          aufg.fortschritt = newFort;
+          const slider = div.querySelector('.progress-slider');
+          if(slider) slider.value = newFort;
+        }
+        // update subtask counter
+        const doneN = aufg.subtasks.filter(s=>s.done).length;
+        const miniEl = div.querySelector('.subtask-progress-mini');
+        if(miniEl) miniEl.textContent = doneN+'/'+aufg.subtasks.length;
+        updatePersonHeader(aufg.person);
+        save();
+      });
+    });
+  }
+  if(!hasWeighted) bindSlider(div, a);
   return div;
 }
 
@@ -1681,9 +2846,15 @@ function openEditModal(id){
   document.getElementById('edit-person').value = a.person;
   document.getElementById('edit-titel').value = a.titel;
   document.getElementById('edit-desc').value = a.desc || '';
+  document.getElementById('edit-desc-count').textContent = (a.desc||'').length + ' / 300';
   document.getElementById('edit-frist').value = a.frist || '';
   document.getElementById('edit-fortschritt').value = a.fortschritt;
   document.getElementById('edit-fort-val').textContent = a.fortschritt + '%';
+
+  // Show/hide manual slider based on weighted subtasks
+  const hasW = (a.subtasks||[]).some(s=>s.pct>0);
+  document.getElementById('edit-fort-group').style.opacity = hasW ? '.4' : '1';
+  document.getElementById('edit-fort-group').title = hasW ? 'Wird automatisch aus Teilaufgaben berechnet' : '';
 
   // Eisenhower buttons
   editSelectedEis = a.eis;
@@ -1691,6 +2862,9 @@ function openEditModal(id){
     b.className = 'eis-btn';
     if(b.dataset.val === a.eis) b.classList.add('sel-' + a.eis);
   });
+
+  // Subtasks
+  renderEditSubtasks(a.subtasks || []);
 
   document.getElementById('edit-changed-badge').classList.remove('visible');
   document.getElementById('edit-modal').classList.add('open');
@@ -1712,6 +2886,81 @@ function markEditChanged(){
   document.getElementById('edit-changed-badge').classList.add('visible');
 }
 
+function renderEditSubtasks(subs){
+  const list = document.getElementById('edit-subtask-list');
+  list.innerHTML = subs.map((s,i) => `
+    <div class="subtask-item" style="background:rgba(255,255,255,.5);border-radius:8px;padding:8px 10px;border:1px solid rgba(212,201,181,.5);" id="sub-row-${i}">
+      <input type="checkbox" class="subtask-check" ${s.done?'checked':''} onchange="markEditChanged()" id="sub-done-${i}"/>
+      <input type="text" value="${esc(s.name)}" placeholder="Teilaufgabe …"
+        style="flex:1;border:none;background:transparent;font-size:13px;color:var(--grau);outline:none;min-width:0;"
+        oninput="markEditChanged()" id="sub-name-${i}" maxlength="120"/>
+      <input type="number" value="${s.pct||''}" placeholder="%" min="0" max="100"
+        style="width:52px;border:1px solid rgba(212,201,181,.6);border-radius:6px;padding:3px 6px;font-size:12px;color:var(--grau);text-align:center;background:rgba(255,255,255,.7);"
+        oninput="markEditChanged();updateSubPctHint()" id="sub-pct-${i}" title="Prozentualer Anteil an der Gesamtaufgabe"/>
+      <button onclick="removeSubRow(${i})" style="background:none;border:none;cursor:pointer;color:rgba(212,201,181,.8);font-size:13px;padding:0 3px;transition:color .15s;" onmouseover="this.style.color='var(--rot-hell)'" onmouseout="this.style.color='rgba(212,201,181,.8)'">✕</button>
+    </div>`).join('');
+  updateSubPctHint();
+}
+
+function addSubtaskRow(){
+  const list = document.getElementById('edit-subtask-list');
+  const i = list.children.length;
+  const row = document.createElement('div');
+  row.className='subtask-item';
+  row.id='sub-row-'+i;
+  row.style.cssText='background:rgba(255,255,255,.5);border-radius:8px;padding:8px 10px;border:1px solid rgba(212,201,181,.5);animation:cardIn .2s ease both;';
+  row.innerHTML=`
+    <input type="checkbox" class="subtask-check" onchange="markEditChanged()" id="sub-done-${i}"/>
+    <input type="text" placeholder="Teilaufgabe …"
+      style="flex:1;border:none;background:transparent;font-size:13px;color:var(--grau);outline:none;min-width:0;"
+      oninput="markEditChanged()" id="sub-name-${i}" maxlength="120"/>
+    <input type="number" placeholder="%" min="0" max="100"
+      style="width:52px;border:1px solid rgba(212,201,181,.6);border-radius:6px;padding:3px 6px;font-size:12px;color:var(--grau);text-align:center;background:rgba(255,255,255,.7);"
+      oninput="markEditChanged();updateSubPctHint()" id="sub-pct-${i}" title="Prozentualer Anteil"/>
+    <button onclick="removeSubRow(${i})" style="background:none;border:none;cursor:pointer;color:rgba(212,201,181,.8);font-size:13px;padding:0 3px;" onmouseover="this.style.color='var(--rot-hell)'" onmouseout="this.style.color='rgba(212,201,181,.8)'">✕</button>`;
+  list.appendChild(row);
+  row.querySelector('input[type=text]').focus();
+  markEditChanged();
+}
+
+function removeSubRow(i){
+  const row = document.getElementById('sub-row-'+i);
+  if(row){ row.remove(); updateSubPctHint(); markEditChanged(); }
+}
+
+function updateSubPctHint(){
+  const list = document.getElementById('edit-subtask-list');
+  const rows = list.querySelectorAll('[id^=sub-pct-]');
+  let total = 0;
+  rows.forEach(r=>{ total += parseInt(r.value)||0; });
+  const hint = document.getElementById('edit-subtask-hint');
+  const fortGroup = document.getElementById('edit-fort-group');
+  const hasW = total > 0;
+  hint.style.display = total > 100 ? 'block' : 'none';
+  fortGroup.style.opacity = hasW ? '.4' : '1';
+  fortGroup.title = hasW ? 'Wird automatisch aus Teilaufgaben berechnet' : '';
+}
+
+function readEditSubtasks(){
+  const list = document.getElementById('edit-subtask-list');
+  const rows = list.querySelectorAll('[id^=sub-row-]');
+  const result = [];
+  rows.forEach((row, i)=>{
+    const nameEl = document.getElementById('sub-name-'+i);
+    const pctEl  = document.getElementById('sub-pct-'+i);
+    const doneEl = document.getElementById('sub-done-'+i);
+    if(!nameEl) return;
+    const name = nameEl.value.trim();
+    if(!name) return;
+    result.push({
+      name,
+      pct: Math.min(100, Math.max(0, parseInt(pctEl?.value)||0)),
+      done: doneEl?.checked || false
+    });
+  });
+  return result;
+}
+
 function speichereEdit(){
   const id = parseFloat(document.getElementById('edit-id').value);
   const a = aufgaben.find(x => x.id === id);
@@ -1719,10 +2968,11 @@ function speichereEdit(){
 
   const neuePerson  = document.getElementById('edit-person').value.trim();
   const neueTitel   = document.getElementById('edit-titel').value.trim();
-  const neueDesc    = document.getElementById('edit-desc').value.trim();
+  const neueDesc    = document.getElementById('edit-desc').value.trim().slice(0,300);
   const neueFrist   = document.getElementById('edit-frist').value;
   const neueFort    = parseInt(document.getElementById('edit-fortschritt').value);
   const neueEis     = editSelectedEis || a.eis;
+  const neueSubs    = readEditSubtasks();
 
   if(!neuePerson || !neueTitel){
     document.getElementById('edit-changed-badge').textContent = '⚠ Person und Titel sind Pflichtfelder';
@@ -1735,13 +2985,15 @@ function speichereEdit(){
   const altePerson = a.person;
   const personChanged = altePerson !== neuePerson;
 
-  // Update data
   a.person      = neuePerson;
   a.titel       = neueTitel;
   a.desc        = neueDesc;
   a.frist       = neueFrist;
-  a.fortschritt = neueFort;
   a.eis         = neueEis;
+  a.subtasks    = neueSubs;
+  // Only update manual fortschritt if no weighted subtasks
+  const hasW = neueSubs.some(s=>s.pct>0);
+  if(!hasW) a.fortschritt = neueFort;
   save();
 
   // Rebuild card in-place
@@ -1804,8 +3056,1017 @@ function toggleDesc(id){
   hintEl.querySelector('.toggle-arrow').style.transform = isOpen ? 'rotate(0deg)' : 'rotate(90deg)';
 }
 
+function toggleSublist(id){
+  const tog = document.getElementById('subtog-'+id);
+  const lst = document.getElementById('sublist-'+id);
+  if(!tog||!lst) return;
+  const open = lst.classList.contains('open');
+  lst.classList.toggle('open', !open);
+  tog.classList.toggle('open', !open);
+}
+
+function updateDescCount(el){
+  const cnt = document.getElementById('edit-desc-count');
+  if(cnt) cnt.textContent = el.value.length + ' / 300';
+}
+
+/* ─────────────── PAGE NAVIGATION ────────── */
+const PAGE_TITLES = {
+  kommando:  '⚡ Kommandozentrale',
+  aufgaben:  'Aufgabenverwaltung',
+  dashboard: 'Dashboard',
+  hilfe:     '📖 Anleitung'
+};
+
+/* ── Impact fist punch on canvas ── */
+function fireImpact(cb){
+  const canvas = document.getElementById('impact-canvas');
+  const flash  = document.getElementById('impact-flash');
+  const ctx    = canvas.getContext('2d');
+  const W = canvas.width  = window.innerWidth;
+  const H = canvas.height = window.innerHeight;
+  const cx = W / 2, cy = H / 2;
+
+  // Soft flash
+  flash.style.opacity = '1';
+  setTimeout(()=>{ flash.style.transition='opacity .3s'; flash.style.opacity='0'; }, 80);
+  setTimeout(()=>{ flash.style.transition=''; }, 420);
+
+  // Gentle shake
+  document.body.classList.remove('impact-shake');
+  void document.body.offsetWidth;
+  document.body.classList.add('impact-shake');
+  setTimeout(()=>document.body.classList.remove('impact-shake'), 350);
+
+  // Shockwave rings – softer, fewer
+  const maxR = Math.hypot(cx, cy) * 1.05;
+  const ring  = { r: 0, alpha: 1 };
+
+  // Fewer, smaller particles
+  const particles = [];
+  const COLORS = ['#dc0d1d','#aa1a1d','#d4c9b5'];
+  for(let i = 0; i < 14; i++){
+    const angle = Math.random() * Math.PI * 2;
+    const speed = 2.5 + Math.random() * 4.5;
+    particles.push({
+      x: cx, y: cy,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed,
+      r: 1.5 + Math.random() * 2.5,
+      alpha: 0.8,
+      color: COLORS[Math.floor(Math.random() * COLORS.length)],
+      decay: .03 + Math.random() * .03
+    });
+  }
+
+  // Fist punch animation state
+  // Phase 0: fist slides in fast from top  (frames 0–5)
+  // Phase 1: hold at center briefly        (frames 6–9)  → page switches at frame 6
+  // Phase 2: fist bounces back up          (frames 10–22)
+  // Phase 3: fade out                      (frames 23+)
+  let fistY   = cy - H * 0.55;   // start above screen
+  let fistAlpha = 1;
+  const fistSize = Math.min(W, H) * 0.16;
+  let frame = 0;
+  let pageSwitched = false;
+
+  function draw(){
+    ctx.clearRect(0, 0, W, H);
+
+    // ── Ring ──
+    if(frame > 3){
+      ring.r  += (maxR - ring.r) * .09 + 1.5;
+      ring.alpha = Math.max(0, 1 - ring.r / maxR);
+      ctx.beginPath();
+      ctx.arc(cx, cy, ring.r, 0, Math.PI * 2);
+      ctx.strokeStyle = `rgba(220,13,29,${ring.alpha * .45})`;
+      ctx.lineWidth = Math.max(1, 12 * (1 - ring.r / maxR));
+      ctx.stroke();
+      // Inner beige ring
+      if(ring.r > 20){
+        ctx.beginPath();
+        ctx.arc(cx, cy, ring.r * .6, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(212,201,181,${ring.alpha * .2})`;
+        ctx.lineWidth = Math.max(1, 6 * (1 - ring.r / maxR));
+        ctx.stroke();
+      }
+    }
+
+    // ── Particles ──
+    if(frame >= 6){
+      particles.forEach(p => {
+        p.x += p.vx; p.y += p.vy;
+        p.vx *= .92; p.vy *= .92;
+        p.alpha = Math.max(0, p.alpha - p.decay);
+        ctx.globalAlpha = p.alpha;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = p.color;
+        ctx.fill();
+        ctx.globalAlpha = 1;
+      });
+    }
+
+    // ── Custom red fist (canvas-drawn) ──
+    if(fistAlpha > 0){
+      // Phase 0: slam down to center
+      if(frame < 6){
+        const t = frame / 5;
+        fistY = (cy - H * 0.55) + (H * 0.55) * (t * t);
+      }
+      // Phase 1: hold
+      else if(frame < 10){
+        fistY = cy;
+      }
+      // Phase 2: bounce back up
+      else if(frame < 22){
+        const t = (frame - 10) / 12;
+        const ease = t < 0.5 ? 2*t*t : -1+(4-2*t)*t;
+        fistY = cy - ease * H * 0.6;
+      }
+      // Phase 3: fade out
+      else {
+        fistAlpha = Math.max(0, fistAlpha - .09);
+        fistY -= 6;
+      }
+
+      const squashX = (frame >= 5 && frame <= 8) ? 1.18 : 1;
+      const squashY = (frame >= 5 && frame <= 8) ? 0.82 : 1;
+      const s = fistSize;
+
+      ctx.save();
+      ctx.translate(cx, fistY);
+      ctx.scale(squashX, squashY);
+      ctx.globalAlpha = fistAlpha;
+
+      // Draw a stylised side-on fist in RANDORI PRO red
+      const r = s * 0.5; // fist radius
+      const dark  = '#6d1723';
+      const mid   = '#aa1a1d';
+      const light = '#dc0d1d';
+      const high  = '#f04050';
+
+      // Shadow beneath fist
+      ctx.beginPath();
+      ctx.ellipse(0, r * 0.9, r * 0.85, r * 0.18, 0, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(0,0,0,0.25)';
+      ctx.fill();
+
+      // Main fist body – rounded rect
+      const fw = r * 1.6, fh = r * 1.3;
+      ctx.beginPath();
+      ctx.roundRect(-fw/2, -fh/2, fw, fh, r * 0.28);
+      const grad = ctx.createLinearGradient(-fw/2, -fh/2, fw/2, fh/2);
+      grad.addColorStop(0, high);
+      grad.addColorStop(0.4, light);
+      grad.addColorStop(1, dark);
+      ctx.fillStyle = grad;
+      ctx.fill();
+
+      // Knuckle lines (3 horizontal lines across top third)
+      ctx.strokeStyle = mid;
+      ctx.lineWidth = r * 0.06;
+      ctx.lineCap = 'round';
+      for(let k = 0; k < 3; k++){
+        const ky = -fh/2 + fh * 0.18 + k * fh * 0.15;
+        ctx.beginPath();
+        ctx.moveTo(-fw * 0.35, ky);
+        ctx.lineTo( fw * 0.35, ky);
+        ctx.stroke();
+      }
+
+      // Thumb – small rounded block on right side
+      const tx = fw * 0.42, ty = fh * 0.05;
+      ctx.beginPath();
+      ctx.roundRect(tx, ty - fh*0.22, fw*0.28, fh*0.38, r*0.18);
+      const tGrad = ctx.createLinearGradient(tx, ty, tx + fw*0.28, ty);
+      tGrad.addColorStop(0, light);
+      tGrad.addColorStop(1, dark);
+      ctx.fillStyle = tGrad;
+      ctx.fill();
+
+      // Wrist – rectangle below fist
+      ctx.beginPath();
+      ctx.roundRect(-fw*0.38, fh/2 - r*0.05, fw*0.76, fh*0.38, r*0.12);
+      ctx.fillStyle = mid;
+      ctx.fill();
+
+      // Highlight sheen
+      ctx.beginPath();
+      ctx.roundRect(-fw*0.28, -fh*0.38, fw*0.22, fh*0.22, r*0.1);
+      ctx.fillStyle = 'rgba(255,255,255,0.18)';
+      ctx.fill();
+
+      // Thin dark outline
+      ctx.beginPath();
+      ctx.roundRect(-fw/2, -fh/2, fw, fh, r * 0.28);
+      ctx.strokeStyle = dark;
+      ctx.lineWidth = r * 0.07;
+      ctx.stroke();
+
+      ctx.restore();
+      ctx.globalAlpha = 1;
+    }
+
+    // Switch page at impact frame
+    if(frame === 6 && !pageSwitched){
+      pageSwitched = true;
+      cb();
+    }
+
+    frame++;
+    const ringDone     = ring.alpha <= 0.015;
+    const particlesDone = particles.every(p => p.alpha <= 0);
+    const fistDone     = fistAlpha <= 0;
+
+    if(!ringDone || !particlesDone || !fistDone){
+      requestAnimationFrame(draw);
+    } else {
+      ctx.clearRect(0, 0, W, H);
+      canvas.style.opacity = '0';
+    }
+  }
+
+  canvas.style.opacity = '1';
+  requestAnimationFrame(draw);
+}
+
+let currentPage = 'aufgaben';
+
+function showPage(page){
+  if(page === currentPage) return;
+
+  const outId = 'page-' + currentPage;
+  const inId  = 'page-' + page;
+  const outEl = document.getElementById(outId);
+  const inEl  = document.getElementById(inId);
+
+  fireImpact(() => {
+    outEl.classList.add('page-exit');
+    outEl.addEventListener('animationend', () => {
+      outEl.style.display = 'none';
+      outEl.classList.remove('page-exit');
+    }, {once:true});
+
+    inEl.style.display = 'block';
+    inEl.classList.add('page-enter');
+    inEl.addEventListener('animationend', () => {
+      inEl.classList.remove('page-enter');
+    }, {once:true});
+
+    ['kommando','aufgaben','dashboard','hilfe'].forEach(p => {
+      const btn = document.getElementById('nav-'+p);
+      if(btn) btn.classList.toggle('active', p===page);
+    });
+    document.getElementById('hdr-page-title').textContent = PAGE_TITLES[page];
+    currentPage = page;
+
+    if(page==='dashboard') renderDashboard();
+    if(page==='kommando')  renderKommando();
+    if(page==='hilfe')     renderHilfe();
+    window.scrollTo({top:0,behavior:'instant'});
+  });
+}
+
+/* ─────────────── PROFIL ─────────────────── */
+function saveMeinName(name){
+  meinName = name.trim();
+  localStorage.setItem('rp_mein_name', meinName);
+  updateProfilWidget();
+}
+
+function updateProfilWidget(){
+  const avatar  = document.getElementById('profil-avatar');
+  const nameEl  = document.getElementById('profil-name-display');
+  if(!avatar || !nameEl) return;
+  if(meinName){
+    const initials = meinName.trim().split(' ').map(w=>w[0]?.toUpperCase()||'').join('').slice(0,2);
+    avatar.textContent  = initials || meinName[0].toUpperCase();
+    nameEl.textContent  = meinName;
+  } else {
+    avatar.textContent  = '?';
+    nameEl.textContent  = 'Mein Profil';
+  }
+}
+
+function openProfilModal(){
+  // Populate person list from current aufgaben
+  const personen = [...new Set(aufgaben.map(a=>a.person))].sort();
+  const list = document.getElementById('profil-person-list');
+  if(personen.length === 0){
+    list.innerHTML = `<div style="font-size:12px;color:var(--grau-light);padding:8px 0;">Noch keine Personen angelegt.</div>`;
+  } else {
+    list.innerHTML = personen.map(p => `
+      <button class="profil-person-btn${meinName===p?' selected':''}"
+        data-person="${p.replace(/"/g,'&quot;')}"
+        onclick="profilWaehlen('${p.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}')">
+        <span class="profil-check">${meinName===p?'✓':''}</span>
+        ${esc(p)}
+      </button>`).join('');
+  }
+  const customInput = document.getElementById('profil-custom-input');
+  // Pre-fill custom if name not in list
+  const inList = personen.includes(meinName);
+  customInput.value = (!inList && meinName) ? meinName : '';
+
+  document.getElementById('profil-modal').classList.add('open');
+}
+
+function closeProfilModal(){
+  document.getElementById('profil-modal').classList.remove('open');
+}
+
+function profilWaehlen(name){
+  saveMeinName(name);
+  document.querySelectorAll('.profil-person-btn').forEach(btn => {
+    const btnName = btn.getAttribute('data-person');
+    const sel = btnName === name;
+    btn.classList.toggle('selected', sel);
+    const chk = btn.querySelector('.profil-check');
+    if(chk) chk.textContent = sel ? '✓' : '';
+  });
+  document.getElementById('profil-custom-input').value = '';
+  if(currentPage === 'kommando') renderKommando();
+  setTimeout(closeProfilModal, 280);
+}
+
+function profilCustomInput(val){
+  // Don't auto-save on every keystroke – user presses Enter or we detect blur
+}
+
+function profilLoeschen(){
+  saveMeinName('');
+  document.getElementById('profil-custom-input').value = '';
+  document.querySelectorAll('.profil-person-btn').forEach(b=>{
+    b.classList.remove('selected');
+    const chk = b.querySelector('.profil-check');
+    if(chk) chk.textContent = '';
+  });
+  if(currentPage === 'kommando') renderKommando();
+}
+
+// Save on Enter key in custom input
+document.addEventListener('DOMContentLoaded', ()=>{
+  const ci = document.getElementById('profil-custom-input');
+  if(ci) ci.addEventListener('keydown', e=>{
+    if(e.key==='Enter' && ci.value.trim()){
+      profilWaehlen(ci.value.trim());
+    }
+  });
+});
+
+document.getElementById('profil-modal').addEventListener('click', e=>{
+  if(e.target===document.getElementById('profil-modal')) closeProfilModal();
+});
+
+/* ─────────────── MEINE AUFGABEN ─────────── */
+function renderMeineAufgaben(){
+  const section = document.getElementById('meine-aufgaben-section');
+  const list    = document.getElementById('meine-aufgaben-list');
+  const nameEl  = document.getElementById('meine-aufgaben-name');
+  if(!section || !list) return;
+
+  if(!meinName){
+    section.style.display = 'none';
+    return;
+  }
+
+  const meineAufgaben = aufgaben
+    .filter(a => a.person === meinName)
+    .sort(sortPA);
+
+  section.style.display = 'block';
+  if(nameEl) nameEl.textContent = meinName;
+
+  if(!meineAufgaben.length){
+    list.innerHTML = `<div class="focus-empty">Keine Aufgaben für „${esc(meinName)}" vorhanden.</div>`;
+    return;
+  }
+
+  list.innerHTML = meineAufgaben.map(a => {
+    const fi = fristInfo(a.frist);
+    const isFokus = fokusIds.has(a.id);
+    const fort = calcFortschritt(a);
+    return `
+      <div class="meine-aufgabe-item${isFokus?' fokus-aktiv':''}">
+        <div class="meine-aufgabe-body" onclick="openEditModal(${a.id})">
+          <div class="meine-aufgabe-titel">${esc(a.titel)}</div>
+          <div class="meine-aufgabe-meta">
+            <span class="task-badge badge-${a.eis}" style="font-size:9px;">${EIS_LABEL[a.eis]}</span>
+            ${fi?`<span class="alert-frist ${fi.cls}">${fi.text}</span>`:''}
+            <span style="color:var(--grau-light);">${fort}% erledigt</span>
+          </div>
+        </div>
+        <button class="meine-fokus-btn${isFokus?' aktiv':''}"
+          onclick="toggleFokus(${a.id})"
+          title="${isFokus?'Aus Fokus entfernen':'Als Fokus markieren'}">
+          ${isFokus?'🎯 Fokus':'☐ Fokus'}
+        </button>
+      </div>`;
+  }).join('');
+}
+
+/* ─────────────── KOMMANDOZENTRALE ───────── */
+
+// ── Schnell-Notiz ──
+let notizTimer = null;
+let notizInited = false;
+function initNotiz(){
+  const area = document.getElementById('notiz-area');
+  if(!area) return;
+  area.value = localStorage.getItem('rp_notiz') || '';
+  updateNotizMeta();
+  if(notizInited) return;
+  notizInited = true;
+  area.addEventListener('input', ()=>{
+    updateNotizMeta();
+    clearTimeout(notizTimer);
+    document.getElementById('notiz-saved').textContent = 'Speichern …';
+    notizTimer = setTimeout(()=>{
+      localStorage.setItem('rp_notiz', area.value);
+      const now = new Date().toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
+      document.getElementById('notiz-saved').textContent = 'Gespeichert um '+now;
+    }, 800);
+  });
+}
+function updateNotizMeta(){
+  const area = document.getElementById('notiz-area');
+  const cnt  = document.getElementById('notiz-count');
+  if(area && cnt) cnt.textContent = area.value.length + ' Zeichen';
+}
+
+// ── Heute-Fokus ──
+function saveFokus(){ localStorage.setItem('rp_fokus', JSON.stringify([...fokusIds])); }
+
+function toggleFokus(id){
+  if(fokusIds.has(id)) fokusIds.delete(id);
+  else fokusIds.add(id);
+  saveFokus();
+  if(currentPage === 'kommando'){
+    renderMeineAufgaben();
+    renderFokusList();
+    renderAlertList();
+  }
+}
+
+// ── Schnelle Aufgabe ──
+function kommandoAufgabe(){
+  const person = document.getElementById('k-person').value.trim();
+  const titel  = document.getElementById('k-titel').value.trim();
+  const frist  = document.getElementById('k-frist').value;
+  const eis    = document.getElementById('k-prio').value;
+  const err    = document.getElementById('k-fehler');
+  if(!person || !titel){ err.textContent = 'Person und Titel sind Pflichtfelder.'; return; }
+  err.textContent = '';
+  const a = {id:Date.now(), person, titel, desc:'', frist, eis, fortschritt:0, subtasks:[]};
+  aufgaben.push(a); save();
+  vollNeuRendern();
+  showToast('✓ Aufgabe angelegt');
+  document.getElementById('k-person').value = '';
+  document.getElementById('k-titel').value  = '';
+  document.getElementById('k-frist').value  = '';
+  renderKommando();
+}
+
+// ── Main render ──
+function renderKommando(){
+  initNotiz();
+  initUploadZone();
+  renderMeineAufgaben();
+  renderFokusList();
+  renderAlertList();
+  renderTop10();
+}
+
+function renderFokusList(){
+  const el = document.getElementById('fokus-list');
+  if(!el) return;
+  // Clean up stale fokus ids
+  fokusIds = new Set([...fokusIds].filter(id => aufgaben.find(a=>a.id===id)));
+  saveFokus();
+
+  const fokusAufgaben = [...fokusIds].map(id => aufgaben.find(a=>a.id===id)).filter(Boolean);
+  if(!fokusAufgaben.length){
+    el.innerHTML = `<div class="focus-empty">Noch keine Aufgaben als Fokus markiert.<br>Klicke auf „Fokus" bei einer Aufgabe unten.</div>`;
+    return;
+  }
+  el.innerHTML = fokusAufgaben.map(a => {
+    const fi = fristInfo(a.frist);
+    return `<div class="alert-item heute-fokus" onclick="openEditModal(${a.id})">
+      <div class="alert-dot focus"></div>
+      <div class="alert-body">
+        <div class="alert-title">${esc(a.titel)}</div>
+        <div class="alert-meta">
+          <span class="alert-person-chip">${esc(a.person)}</span>
+          <span class="task-badge badge-${a.eis}" style="font-size:9px;">${EIS_LABEL[a.eis]}</span>
+          ${fi?`<span class="alert-frist ${fi.cls}">${fi.text}</span>`:''}
+        </div>
+      </div>
+      <button class="alert-focus-btn active" onclick="event.stopPropagation();toggleFokus(${a.id})">✕ Fokus</button>
+    </div>`;
+  }).join('');
+}
+
+function renderAlertList(){
+  const el = document.getElementById('alert-list');
+  if(!el) return;
+  const heute = new Date(); heute.setHours(0,0,0,0);
+
+  const alertItems = aufgaben
+    .filter(a => a.frist)
+    .map(a => {
+      const f = new Date(a.frist+'T00:00:00');
+      const d = Math.round((f-heute)/86400000);
+      return {...a, _d:d};
+    })
+    .filter(a => a._d <= 7) // overdue or within 7 days
+    .sort((a,b) => a._d - b._d);
+
+  if(!alertItems.length){
+    el.innerHTML = `<div class="focus-empty">Keine überfälligen oder demnächst fälligen Aufgaben. 🎉</div>`;
+    return;
+  }
+
+  el.innerHTML = alertItems.map(a => {
+    const isOverdue = a._d < 0;
+    const isSoon    = a._d >= 0 && a._d <= 3;
+    const cls = isOverdue ? 'overdue' : 'soon';
+    const fi  = fristInfo(a.frist);
+    const isFokus = fokusIds.has(a.id);
+    return `<div class="alert-item" onclick="openEditModal(${a.id})">
+      <div class="alert-dot ${cls}"></div>
+      <div class="alert-body">
+        <div class="alert-title">${esc(a.titel)}</div>
+        <div class="alert-meta">
+          <span class="alert-person-chip">${esc(a.person)}</span>
+          <span class="task-badge badge-${a.eis}" style="font-size:9px;">${EIS_LABEL[a.eis]}</span>
+          ${fi?`<span class="alert-frist ${cls}">${fi.text}</span>`:''}
+        </div>
+      </div>
+      <button class="alert-focus-btn${isFokus?' active':''}"
+        onclick="event.stopPropagation();toggleFokus(${a.id})">
+        ${isFokus?'✓ Fokus':'Fokus'}
+      </button>
+    </div>`;
+  }).join('');
+}
+
+function renderTop10(){
+  const el = document.getElementById('top10-list');
+  if(!el) return;
+  const ohne = aufgaben
+    .filter(a => !a.frist && a.fortschritt < 100)
+    .sort((a,b) => EIS_ORDER[a.eis]-EIS_ORDER[b.eis])
+    .slice(0,10);
+
+  if(!ohne.length){
+    el.innerHTML = `<div class="focus-empty">Alle Aufgaben haben eine Frist oder sind erledigt.</div>`;
+    return;
+  }
+  el.innerHTML = `<div class="top10-list">${ohne.map((a,i) => `
+    <div class="top10-item" onclick="openEditModal(${a.id})">
+      <div class="top10-rank">${i+1}</div>
+      <div class="top10-body">
+        <div class="top10-title">${esc(a.titel)}</div>
+        <div class="top10-meta">
+          <span>${esc(a.person)}</span> · <span style="color:var(--rot-mittel);">${EIS_LABEL[a.eis]}</span>
+        </div>
+      </div>
+      <span class="task-badge badge-${a.eis}" style="font-size:9px;flex-shrink:0;">${a.eis.toUpperCase()}</span>
+    </div>`).join('')}
+  </div>`;
+}
+
+/* ─────────────── DASHBOARD ────────────── */
+function renderDashboard(){
+  const total = aufgaben.length;
+  if(!total){
+    document.getElementById('dash-kpi-grid').innerHTML =
+      `<div class="glass-card" style="grid-column:1/-1;text-align:center;padding:40px;">
+        <div style="font-size:32px;opacity:.4;margin-bottom:12px;">📊</div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:13px;letter-spacing:2px;text-transform:uppercase;color:rgba(87,94,98,.5);">
+          Noch keine Aufgaben vorhanden
+        </div>
+      </div>`;
+    document.getElementById('dash-eis-grid').innerHTML = '';
+    document.getElementById('dash-person-list').innerHTML = '';
+    return;
+  }
+
+  const gesamtFort = Math.round(aufgaben.reduce((s,a)=>s+a.fortschritt,0)/total);
+  const erledigt   = aufgaben.filter(a=>a.fortschritt===100).length;
+  const offen      = total - erledigt;
+
+  // ── KPIs ──
+  document.getElementById('dash-kpi-grid').innerHTML = `
+    <div class="dash-kpi">
+      <div class="kpi-label">Gesamtfortschritt</div>
+      <div class="kpi-value">${gesamtFort}%</div>
+      <div class="kpi-bar-track"><div class="kpi-bar-fill" style="width:${gesamtFort}%"></div></div>
+      <div class="kpi-sub">${total} Aufgaben gesamt</div>
+    </div>
+    <div class="dash-kpi">
+      <div class="kpi-label">Erledigt</div>
+      <div class="kpi-value" style="color:#16a34a;">${erledigt}</div>
+      <div class="kpi-bar-track"><div class="kpi-bar-fill" style="width:${total?Math.round(erledigt/total*100):0}%;background:linear-gradient(to right,#16a34a,#22c55e);"></div></div>
+      <div class="kpi-sub">${total?Math.round(erledigt/total*100):0}% aller Aufgaben</div>
+    </div>
+    <div class="dash-kpi">
+      <div class="kpi-label">Offen</div>
+      <div class="kpi-value">${offen}</div>
+      <div class="kpi-bar-track"><div class="kpi-bar-fill" style="width:${total?Math.round(offen/total*100):0}%"></div></div>
+      <div class="kpi-sub">${[...new Set(aufgaben.map(a=>a.person))].length} Personen beteiligt</div>
+    </div>
+  `;
+
+  // ── EISENHOWER ──
+  const eisData = [
+    {q:'q1', label:'Dringend + Wichtig',      color:'var(--rot-hell)'},
+    {q:'q2', label:'Wichtig, nicht dringend', color:'var(--rot-mittel)'},
+    {q:'q3', label:'Dringend, nicht wichtig', color:'var(--rot-dunkel)'},
+    {q:'q4', label:'Weder noch',               color:'var(--grau)'},
+  ];
+  document.getElementById('dash-eis-grid').innerHTML = eisData.map(e=>{
+    const n = aufgaben.filter(a=>a.eis===e.q).length;
+    const pct = total ? Math.round(n/total*100) : 0;
+    return `
+      <div class="eis-dash-card">
+        <div class="eis-dash-stripe" style="background:${e.color};"></div>
+        <div class="kpi-label" style="padding-left:8px;">${e.label}</div>
+        <div class="kpi-value" style="padding-left:8px;color:${e.color};">${n}</div>
+        <div class="kpi-bar-track" style="margin-top:8px;">
+          <div class="kpi-bar-fill" style="width:${pct}%;background:${e.color};"></div>
+        </div>
+        <div class="kpi-sub" style="padding-left:8px;margin-top:4px;">${pct}% aller Aufgaben</div>
+      </div>`;
+  }).join('');
+
+  // ── PERSONEN ──
+  const personen = [...new Set(aufgaben.map(a=>a.person))].sort();
+  document.getElementById('dash-person-list').innerHTML = personen.map(person=>{
+    const pa  = aufgaben.filter(a=>a.person===person);
+    const pct = pPct(pa);
+    const erl = pa.filter(a=>a.fortschritt===100).length;
+    const chips = ['q1','q2','q3','q4'].map(q=>{
+      const n = pa.filter(a=>a.eis===q).length;
+      if(!n) return '';
+      const colors = {q1:'var(--rot-hell)',q2:'var(--rot-mittel)',q3:'var(--rot-dunkel)',q4:'var(--grau)'};
+      return `<span class="pdr-chip" style="background:${colors[q]};">${n} ${EIS_LABEL[q].split(',')[0]}</span>`;
+    }).join('');
+    return `
+      <div class="person-dash-row">
+        <div class="pdr-top">
+          <span class="pdr-name">${esc(person)}</span>
+          <span class="pdr-pct">${pct}%</span>
+        </div>
+        <div class="pdr-meta">${chips}</div>
+        <div class="pdr-bar-track">
+          <div class="pdr-bar-fill" style="width:${pct}%"></div>
+        </div>
+        <div class="kpi-sub" style="margin-top:6px;">${erl} von ${pa.length} Aufgaben erledigt</div>
+      </div>`;
+  }).join('');
+}
+
+/* ─────────────── HILFE / ANLEITUNG ─────── */
+let tourStep = 0;
+let hilfeInited = false;
+
+const TOUR_STEPS = [
+  {
+    icon: '👤',
+    title: 'Profil einrichten',
+    text: `Klicke zuerst oben rechts im Header auf <strong>„Mein Profil"</strong>. Wähle deinen Namen aus der Liste oder gib ihn manuell ein. Sobald dein Profil gesetzt ist, siehst du in der Kommandozentrale eine eigene Sektion nur mit deinen Aufgaben.`,
+    mockup: () => `
+      <div class="mockup">
+        <div style="display:flex;align-items:center;gap:8px;background:linear-gradient(135deg,#6d1723,#8c1e2d);padding:10px 14px;border-radius:8px;margin-bottom:10px;">
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:900;color:#fff;letter-spacing:2px;">RANDORI PRO</div>
+          <div style="flex:1;"></div>
+          <div style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.2);border-radius:20px;padding:3px 10px 3px 5px;">
+            <div style="width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#dc0d1d,#6d1723);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:900;color:#fff;">MM</div>
+            <span style="font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:1px;color:rgba(255,255,255,.85);">Max Müller</span>
+          </div>
+        </div>
+        <div class="mockup-tip"><span class="mockup-tip-icon">💡</span><span class="mockup-tip-text"><strong>Tipp:</strong> Wähle deinen Namen aus der Personenliste – so werden dir deine Aufgaben automatisch in der Kommandozentrale angezeigt.</span></div>
+      </div>`
+  },
+  {
+    icon: '📋',
+    title: 'Erste Aufgabe anlegen',
+    text: `Wechsle zum Tab <strong>„Aufgaben"</strong>. Oben findest du das Formular zum Anlegen neuer Aufgaben. Fülle <strong>Person</strong>, <strong>Titel</strong> und wähle eine <strong>Priorität</strong> nach der Eisenhower-Matrix. Frist und Beschreibung sind optional, aber sehr hilfreich.`,
+    mockup: () => `
+      <div class="mockup">
+        <div class="mockup-nav">
+          <div class="mockup-nav-btn">⚡ Kommandozentrale</div>
+          <div class="mockup-nav-btn active">📋 Aufgaben</div>
+          <div class="mockup-nav-btn">📊 Dashboard</div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 100px;gap:6px;margin-bottom:8px;">
+          <div style="background:rgba(255,255,255,.7);border:1px solid rgba(212,201,181,.6);border-radius:6px;padding:7px 10px;font-size:11px;color:#8e9397;">Max Müller</div>
+          <div style="background:rgba(255,255,255,.7);border:1.5px solid #aa1a1d;border-radius:6px;padding:7px 10px;font-size:11px;color:#575e62;">Jahresbericht…</div>
+          <div style="background:rgba(255,255,255,.7);border:1px solid rgba(212,201,181,.6);border-radius:6px;padding:7px 10px;font-size:11px;color:#8e9397;">31.03.2026</div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px;">
+          <div style="background:rgba(255,255,255,.7);border:1px solid rgba(212,201,181,.6);border-radius:6px;padding:7px 10px;font-size:11px;color:#8e9397;">Beschreibung …</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;">
+            <div style="background:#dc0d1d;border-radius:5px;padding:5px;font-size:9px;color:#fff;text-align:center;font-weight:700;">🔴 Dringend + Wichtig</div>
+            <div style="background:rgba(212,201,181,.3);border:1px solid rgba(212,201,181,.6);border-radius:5px;padding:5px;font-size:9px;color:#575e62;text-align:center;">🟥 Wichtig</div>
+            <div style="background:rgba(212,201,181,.3);border:1px solid rgba(212,201,181,.6);border-radius:5px;padding:5px;font-size:9px;color:#575e62;text-align:center;">🟫 Dringend</div>
+            <div style="background:rgba(212,201,181,.3);border:1px solid rgba(212,201,181,.6);border-radius:5px;padding:5px;font-size:9px;color:#575e62;text-align:center;">⬜ Weder</div>
+          </div>
+        </div>
+        <div style="text-align:right;">
+          <div style="display:inline-block;background:linear-gradient(135deg,#dc0d1d,#aa1a1d);color:#fff;border-radius:6px;padding:7px 16px;font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:1.5px;">+ AUFGABE SPEICHERN</div>
+        </div>
+      </div>`
+  },
+  {
+    icon: '✏️',
+    title: 'Aufgaben bearbeiten',
+    text: `Jede Aufgabenkarte hat ein <strong>Stift-Symbol (✎)</strong> oben rechts. Damit öffnest du das Bearbeitungs-Modal. Dort kannst du alle Felder ändern – inklusive die <strong>Zuweisung zu einer anderen Person</strong>. Du kannst hier auch <strong>Teilaufgaben</strong> anlegen und jeweils einen Prozentanteil vergeben.`,
+    mockup: () => `
+      <div class="mockup">
+        <div class="mockup-card">
+          <div class="mockup-stripe" style="background:linear-gradient(to bottom,#ff3a3a,#dc0d1d);"></div>
+          <div style="flex:1;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+              <span style="font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;color:#6d1723;">Jahresbericht erstellen</span>
+              <span style="background:#dc0d1d;color:#fff;font-size:8px;font-weight:700;padding:2px 7px;border-radius:20px;letter-spacing:.5px;">DRINGEND + WICHTIG</span>
+            </div>
+            <div style="font-size:11px;color:#8e9397;margin-bottom:8px;">Für die Geschäftsleitung</div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span style="font-size:9px;color:#8e9397;font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:1px;text-transform:uppercase;">Fortschritt</span>
+              <div class="mockup-slider-track" style="flex:1;">
+                <div class="mockup-slider-fill" style="width:40%;"></div>
+                <div class="mockup-slider-thumb" style="left:38%;"></div>
+              </div>
+              <span style="font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:800;color:#6d1723;">40%</span>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px;padding-left:6px;">
+            <div style="background:rgba(170,26,29,.15);border-radius:4px;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:13px;cursor:pointer;">✎</div>
+            <div style="background:rgba(212,201,181,.3);border-radius:4px;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:11px;cursor:pointer;">✕</div>
+          </div>
+        </div>
+        <div class="mockup-tip"><span class="mockup-tip-icon">💡</span><span class="mockup-tip-text"><strong>Teilaufgaben:</strong> Im Bearbeiten-Modal kannst du Teilaufgaben mit Prozentanteil anlegen. Werden sie abgehakt, berechnet sich der Fortschritt automatisch.</span></div>
+      </div>`
+  },
+  {
+    icon: '⚡',
+    title: 'Kommandozentrale nutzen',
+    text: `Die <strong>Kommandozentrale</strong> ist dein täglicher Startpunkt. Hier siehst du auf einen Blick: deine persönlichen Aufgaben, überfällige und demnächst fällige Aufgaben, die Top-10 ohne Frist – und kannst schnell neue Aufgaben anlegen oder Dateien importieren. Aufgaben kannst du mit <strong>„Fokus"</strong> markieren, um sie für heute hervorzuheben.`,
+    mockup: () => `
+      <div class="mockup">
+        <div class="mockup-nav" style="margin-bottom:8px;">
+          <div class="mockup-nav-btn active">⚡ Kommandozentrale</div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+          <div style="background:rgba(255,255,255,.6);border:1px solid rgba(212,201,181,.5);border-radius:8px;padding:10px;">
+            <div style="font-family:'Barlow Condensed',sans-serif;font-size:9px;font-weight:700;letter-spacing:1.5px;color:#dc0d1d;text-transform:uppercase;margin-bottom:6px;">👤 Meine Aufgaben</div>
+            <div style="display:flex;align-items:center;gap:6px;background:rgba(41,128,185,.05);border:1px solid rgba(41,128,185,.2);border-radius:6px;padding:6px 8px;margin-bottom:4px;">
+              <div style="flex:1;font-size:11px;color:#6d1723;font-weight:600;">Jahresbericht</div>
+              <div style="background:rgba(41,128,185,.12);border:1px solid rgba(41,128,185,.3);color:#2980b9;font-size:8px;font-weight:700;padding:2px 7px;border-radius:20px;font-family:'Barlow Condensed',sans-serif;letter-spacing:.5px;">🎯 FOKUS</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.5);border:1px solid rgba(212,201,181,.4);border-radius:6px;padding:6px 8px;">
+              <div style="flex:1;font-size:11px;color:#575e62;">Website Update</div>
+              <div style="border:1px solid rgba(212,201,181,.6);color:#8e9397;font-size:8px;font-weight:700;padding:2px 7px;border-radius:20px;font-family:'Barlow Condensed',sans-serif;">☐ FOKUS</div>
+            </div>
+          </div>
+          <div style="background:rgba(255,255,255,.6);border:1px solid rgba(212,201,181,.5);border-radius:8px;padding:10px;">
+            <div style="font-family:'Barlow Condensed',sans-serif;font-size:9px;font-weight:700;letter-spacing:1.5px;color:#dc0d1d;text-transform:uppercase;margin-bottom:6px;">🚨 Überfällig</div>
+            <div style="display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid rgba(212,201,181,.2);">
+              <div style="width:8px;height:8px;border-radius:50%;background:#dc0d1d;flex-shrink:0;"></div>
+              <div style="flex:1;font-size:11px;color:#575e62;">Rechnungen prüfen</div>
+              <div style="font-size:10px;color:#dc0d1d;font-weight:600;">⚠ -2 Tage</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;padding:5px 0;">
+              <div style="width:8px;height:8px;border-radius:50%;background:#e67e22;flex-shrink:0;"></div>
+              <div style="flex:1;font-size:11px;color:#575e62;">Newsletter</div>
+              <div style="font-size:10px;color:#e67e22;font-weight:600;">⏳ 2 Tage</div>
+            </div>
+          </div>
+        </div>
+      </div>`
+  },
+  {
+    icon: '📊',
+    title: 'Dashboard & Auswertung',
+    text: `Das <strong>Dashboard</strong> gibt dir eine Gesamtübersicht: Wie viel Prozent aller Aufgaben sind erledigt? Wie verteilen sich die Aufgaben nach Eisenhower-Quadrant? Wie weit ist jede Person? Das Dashboard aktualisiert sich automatisch jedes Mal wenn du es öffnest.`,
+    mockup: () => `
+      <div class="mockup">
+        <div class="mockup-kpi-grid">
+          <div class="mockup-kpi"><div class="mockup-kpi-val">62%</div><div class="mockup-kpi-lbl">Gesamtfortschritt</div></div>
+          <div class="mockup-kpi"><div class="mockup-kpi-val" style="color:#16a34a;">5</div><div class="mockup-kpi-lbl">Erledigt</div></div>
+          <div class="mockup-kpi"><div class="mockup-kpi-val">3</div><div class="mockup-kpi-lbl">Offen</div></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px;">
+          <div style="background:rgba(255,255,255,.6);border-left:4px solid #dc0d1d;border-radius:0 6px 6px 0;padding:8px 10px;">
+            <div style="font-size:9px;color:#8e9397;font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:1px;text-transform:uppercase;">Dringend + Wichtig</div>
+            <div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;color:#dc0d1d;line-height:1.1;">3</div>
+          </div>
+          <div style="background:rgba(255,255,255,.6);border-left:4px solid #aa1a1d;border-radius:0 6px 6px 0;padding:8px 10px;">
+            <div style="font-size:9px;color:#8e9397;font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:1px;text-transform:uppercase;">Wichtig, nicht dringend</div>
+            <div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;color:#aa1a1d;line-height:1.1;">4</div>
+          </div>
+        </div>
+        <div style="background:rgba(255,255,255,.6);border:1px solid rgba(212,201,181,.4);border-radius:8px;padding:10px;">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;">
+            <span style="font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:800;color:#6d1723;letter-spacing:1px;text-transform:uppercase;">Max Müller</span>
+            <span style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:900;color:#6d1723;">75%</span>
+          </div>
+          <div style="height:5px;background:rgba(212,201,181,.3);border-radius:20px;overflow:hidden;">
+            <div style="width:75%;height:100%;background:linear-gradient(to right,#dc0d1d,#aa1a1d);border-radius:20px;"></div>
+          </div>
+        </div>
+      </div>`
+  },
+  {
+    icon: '💾',
+    title: 'Daten sichern & importieren',
+    text: `Deine Daten liegen im Browser-Speicher. Damit du sie nicht verlierst, <strong>exportiere regelmäßig</strong> über den Button im Footer. Die Datei kannst du jederzeit wieder importieren – auch auf einem anderen Gerät. Für Massenimport nutze eine <strong>CSV- oder Excel-Datei</strong> in der Kommandozentrale. Beim Schließen der App wirst du automatisch an den Export erinnert.`,
+    mockup: () => `
+      <div class="mockup">
+        <div style="background:linear-gradient(135deg,#6d1723,#8c1e2d);border-radius:8px;padding:10px 14px;margin-bottom:10px;display:flex;align-items:center;gap:10px;">
+          <span style="font-size:20px;">💾</span>
+          <div>
+            <div style="font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:#fff;">Daten sichern?</div>
+            <div style="font-size:11px;color:rgba(212,201,181,.7);margin-top:2px;">Du verlässt RANDORI PRO …</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;margin-bottom:10px;">
+          <div style="flex:1;background:linear-gradient(135deg,#dc0d1d,#aa1a1d);color:#fff;border-radius:6px;padding:8px;text-align:center;font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:1px;">⬇ EXPORTIEREN & SCHLIESSEN</div>
+          <div style="flex:1;background:rgba(255,255,255,.6);border:1px solid rgba(212,201,181,.5);border-radius:6px;padding:8px;text-align:center;font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:1px;color:#575e62;">OHNE EXPORT</div>
+        </div>
+        <div style="display:flex;gap:8px;background:rgba(255,255,255,.5);border:1px solid rgba(212,201,181,.4);border-radius:8px;padding:10px;align-items:center;">
+          <span style="font-size:16px;">📂</span>
+          <div>
+            <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#6d1723;margin-bottom:2px;">CSV / Excel Import</div>
+            <div style="font-size:10px;color:#8e9397;">Viele Aufgaben auf einmal importieren – in der Kommandozentrale</div>
+          </div>
+        </div>
+      </div>`
+  }
+];
+
+const GUIDE_SECTIONS = [
+  {
+    icon: '📋',
+    title: 'Aufgaben verwalten',
+    content: `
+      <div class="guide-step-list">
+        <div class="guide-step"><div class="guide-step-num">1</div><div class="guide-step-text">Gehe zu <strong>„Aufgaben"</strong> und fülle das Formular oben aus: Person, Titel, optional Beschreibung (max. 300 Zeichen), Frist und Priorität.</div></div>
+        <div class="guide-step"><div class="guide-step-num">2</div><div class="guide-step-text">Wähle eine Priorität nach der <strong>Eisenhower-Matrix</strong>: Q1 = Dringend + Wichtig (sofort erledigen), Q2 = Wichtig, nicht dringend (planen), Q3 = Dringend, nicht wichtig (delegieren), Q4 = Weder noch (eliminieren).</div></div>
+        <div class="guide-step"><div class="guide-step-num">3</div><div class="guide-step-text">Aufgaben werden automatisch <strong>nach Person und Priorität sortiert</strong>. Mit der <strong>Filterleiste</strong> über den Karten kannst du einzelne Personen ein- und ausblenden.</div></div>
+        <div class="guide-step"><div class="guide-step-num">4</div><div class="guide-step-text">Klicke auf <strong>✎</strong> auf einer Karte um sie zu bearbeiten – inklusive Personen-Wechsel und Teilaufgaben. Das <strong>✕</strong> löscht die Aufgabe.</div></div>
+        <div class="guide-step"><div class="guide-step-num">5</div><div class="guide-step-text">Ziehe den <strong>Fortschritts-Regler</strong> auf jeder Karte. Klicke auf den Beschreibungs-Toggle um die Details ein- oder auszublenden.</div></div>
+      </div>
+      <div class="guide-tip-box">💡 <strong>Tipp:</strong> Wenn du Teilaufgaben mit Prozentangaben versiehst, berechnet sich der Fortschritt automatisch aus den Checkboxen – der manuelle Regler wird dann deaktiviert.</div>`
+  },
+  {
+    icon: '⚡',
+    title: 'Kommandozentrale',
+    content: `
+      <div class="guide-feature-grid">
+        <div class="guide-feature"><div class="guide-feature-icon">👤</div><div class="guide-feature-title">Meine Aufgaben</div><div class="guide-feature-text">Nur sichtbar wenn Profil gesetzt. Zeigt alle Aufgaben deiner Person, sortiert nach Eisenhower + Frist. Jede Aufgabe einzeln als Fokus markierbar.</div></div>
+        <div class="guide-feature"><div class="guide-feature-icon">🎯</div><div class="guide-feature-title">Heute-Fokus</div><div class="guide-feature-text">Aufgaben die du heute im Fokus hast. Klicke bei einer Aufgabe auf „Fokus" um sie hier anzupinnen. Bleibt nach Reload erhalten.</div></div>
+        <div class="guide-feature"><div class="guide-feature-icon">🚨</div><div class="guide-feature-title">Überfällig & Demnächst</div><div class="guide-feature-text">Alle Aufgaben mit Frist in den nächsten 7 Tagen oder bereits überfällig – rot markiert. Direkt per Klick bearbeitbar.</div></div>
+        <div class="guide-feature"><div class="guide-feature-icon">🏆</div><div class="guide-feature-title">Top 10 ohne Frist</div><div class="guide-feature-text">Die 10 wichtigsten Aufgaben ohne Fristangabe – nach Eisenhower sortiert. So gehen keine Q1-Aufgaben ohne Termin unter.</div></div>
+        <div class="guide-feature"><div class="guide-feature-icon">⚡</div><div class="guide-feature-title">Schnelle Aufgabe</div><div class="guide-feature-text">Direkt eine neue Aufgabe anlegen ohne zum Aufgaben-Tab wechseln zu müssen.</div></div>
+        <div class="guide-feature"><div class="guide-feature-icon">📝</div><div class="guide-feature-title">Schnell-Notiz</div><div class="guide-feature-text">Freies Textfeld für Gedanken und Ideen. Wird automatisch gespeichert – 800ms nach dem letzten Tastendruck.</div></div>
+      </div>`
+  },
+  {
+    icon: '📊',
+    title: 'Dashboard',
+    content: `
+      <div class="guide-step-list">
+        <div class="guide-step"><div class="guide-step-num">1</div><div class="guide-step-text"><strong>3 KPI-Kacheln</strong> oben: Gesamtfortschritt in %, Anzahl erledigter Aufgaben (100%), Anzahl offener Aufgaben.</div></div>
+        <div class="guide-step"><div class="guide-step-num">2</div><div class="guide-step-text"><strong>Eisenhower-Auswertung</strong>: Wie viele Aufgaben liegen in welchem Quadranten? So siehst du auf einen Blick ob das Team zu viele „Feuer löscht" (Q1) oder strategisch arbeitet (Q2).</div></div>
+        <div class="guide-step"><div class="guide-step-num">3</div><div class="guide-step-text"><strong>Fortschritt pro Person</strong>: Jede Person mit ihrem Durchschnitts-Fortschritt, aufgeschlüsselt nach Quadranten. Sofort sichtbar wer gerade unter- oder überlastet ist.</div></div>
+      </div>
+      <div class="guide-tip-box">💡 Das Dashboard aktualisiert sich jedes Mal neu wenn du den Tab öffnest – du siehst immer den aktuellen Stand.</div>`
+  },
+  {
+    icon: '📂',
+    title: 'Import & Export',
+    content: `
+      <div class="guide-step-list">
+        <div class="guide-step"><div class="guide-step-num">1</div><div class="guide-step-text"><strong>CSV/Excel-Import</strong> in der Kommandozentrale: Pflichtfelder sind „Person", „Aufgabe" und „Priorität". Optional: Beschreibung, Frist, Fortschritt. Spalten werden automatisch erkannt – auch Alternativbezeichnungen wie „Name", „Task", „Prio" usw.</div></div>
+        <div class="guide-step"><div class="guide-step-num">2</div><div class="guide-step-text">Gültige <strong>Prioritätswerte</strong>: q1 / 1 / „dringend wichtig" / „sofort" → Q1. q2 / 2 / „wichtig" / „planen" → Q2. q3 / 3 / „dringend" / „delegieren" → Q3. q4 / 4 / „niedrig" / „später" → Q4.</div></div>
+        <div class="guide-step"><div class="guide-step-num">3</div><div class="guide-step-text"><strong>JSON-Export</strong> über den „⬇ Exportieren"-Button im Footer. Speichert alle Aufgaben, Teilaufgaben, Fokus-Markierungen und die Schnell-Notiz. Die Datei kann jederzeit wieder importiert werden.</div></div>
+        <div class="guide-step"><div class="guide-step-num">4</div><div class="guide-step-text"><strong>JSON-Import</strong> über den „⬆ Importieren"-Button im Footer. Bereits vorhandene Aufgaben (gleiche ID) werden nicht doppelt angelegt – sicheres Zusammenführen mehrerer Exportdateien.</div></div>
+      </div>
+      <div class="guide-tip-box">💡 <strong>Empfehlung:</strong> Exportiere täglich nach der Arbeit. Lege die Datei in einem geteilten Ordner (z.B. iCloud, OneDrive) ab – so kannst du auf jedem Gerät und in jedem Browser weitermachen.</div>`
+  },
+  {
+    icon: '👤',
+    title: 'Profil & Mein-Bereich',
+    content: `
+      <div class="guide-step-list">
+        <div class="guide-step"><div class="guide-step-num">1</div><div class="guide-step-text">Klicke oben rechts im Header auf das <strong>Profil-Widget</strong> (zeigt deine Initialen oder „?").</div></div>
+        <div class="guide-step"><div class="guide-step-num">2</div><div class="guide-step-text">Wähle deinen Namen aus der Liste der vorhandenen Personen – oder gib ihn manuell ein und bestätige mit Enter.</div></div>
+        <div class="guide-step"><div class="guide-step-num">3</div><div class="guide-step-text">In der <strong>Kommandozentrale</strong> erscheint jetzt eine eigene Sektion „Meine Aufgaben" mit allen Aufgaben die dir zugewiesen sind.</div></div>
+        <div class="guide-step"><div class="guide-step-num">4</div><div class="guide-step-text">Jede deiner Aufgaben hat einen <strong>„☐ Fokus"-Button</strong>. Klicke ihn um die Aufgabe für heute als Fokus zu markieren. Sie erscheint dann auch in der Fokus-Liste.</div></div>
+      </div>`
+  },
+  {
+    icon: '💾',
+    title: 'Datensicherung & Browser-Speicher',
+    content: `
+      <div class="guide-step-list">
+        <div class="guide-step"><div class="guide-step-num">1</div><div class="guide-step-text">Alle Daten liegen im <strong>localStorage</strong> deines Browsers. Sie bleiben beim Neuladen der Seite erhalten – gehen aber verloren wenn du den Browser-Cache leerst.</div></div>
+        <div class="guide-step"><div class="guide-step-num">2</div><div class="guide-step-text">Beim <strong>Schließen der App</strong> erscheint automatisch ein Erinnerungs-Modal das dich zum Export auffordert.</div></div>
+        <div class="guide-step"><div class="guide-step-num">3</div><div class="guide-step-text">Die App funktioniert <strong>vollständig offline</strong> – du brauchst nur beim ersten Öffnen eine Internetverbindung (für die Schriften). Danach läuft alles lokal.</div></div>
+        <div class="guide-step"><div class="guide-step-num">4</div><div class="guide-step-text">Auf <strong>GitHub Pages gehostet</strong>: Öffne die URL in jedem Browser auf jedem Gerät. Importiere einfach deine Export-Datei um deinen Stand wiederherzustellen.</div></div>
+      </div>
+      <div class="guide-tip-box">⚠️ <strong>Wichtig:</strong> Verschiedene Browser auf demselben Gerät haben jeweils ihren eigenen Speicher. Nutze immer denselben Browser – oder nutze Export/Import zum Übertragen.</div>`
+  }
+];
+
+let hilfeGuidesInited = false;
+
+function renderHilfe(){
+  if(!hilfeInited){
+    hilfeInited = true;
+    renderTourCards();
+    renderGuideSections();
+  }
+}
+
+function renderTourCards(){
+  const progress = document.getElementById('tour-progress');
+  const cards    = document.getElementById('tour-cards');
+  if(!progress || !cards) return;
+
+  // Dots
+  progress.innerHTML = TOUR_STEPS.map((s,i) => `
+    <div class="tour-step-dot${i===0?' active':''}" id="tdot-${i}" onclick="goTourStep(${i})"></div>
+  `).join('') + `<span class="tour-label">Schritt <span id="tour-counter-lbl">1</span> von ${TOUR_STEPS.length}</span>`;
+
+  // Cards
+  cards.innerHTML = TOUR_STEPS.map((s,i) => `
+    <div class="tour-card${i===0?' active':''}" id="tcard-tour-${i}">
+      <div class="tour-card-header">
+        <div class="tour-step-num">${i+1}</div>
+        <div class="tour-card-title">${s.title}</div>
+        <div class="tour-card-icon">${s.icon}</div>
+      </div>
+      <div class="tour-card-body">
+        ${s.mockup()}
+        <p class="tour-card-text">${s.text}</p>
+        <div class="tour-card-nav">
+          ${i > 0
+            ? `<button class="tour-nav-btn prev" onclick="goTourStep(${i-1})">← Zurück</button>`
+            : `<span></span>`}
+          <span class="tour-step-counter" id="tour-counter-${i}">${i+1} / ${TOUR_STEPS.length}</span>
+          ${i < TOUR_STEPS.length-1
+            ? `<button class="tour-nav-btn next" onclick="goTourStep(${i+1})">Weiter →</button>`
+            : `<button class="tour-nav-btn next" onclick="showPage('aufgaben')">🚀 Loslegen!</button>`}
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function goTourStep(i){
+  // Hide all, show target
+  document.querySelectorAll('.tour-card').forEach((c,idx) => {
+    c.classList.toggle('active', idx===i);
+  });
+  document.querySelectorAll('.tour-step-dot').forEach((d,idx) => {
+    d.classList.toggle('active', idx===i);
+    d.classList.toggle('done', idx<i);
+  });
+  const lbl = document.getElementById('tour-counter-lbl');
+  if(lbl) lbl.textContent = i+1;
+  tourStep = i;
+}
+
+function renderGuideSections(){
+  const el = document.getElementById('guide-sections');
+  if(!el) return;
+  el.innerHTML = GUIDE_SECTIONS.map((s,i) => `
+    <div class="guide-section">
+      <div class="guide-section-header${i===0?' open':''}" onclick="toggleGuide(this)" id="ghead-${i}">
+        <span class="guide-section-icon">${s.icon}</span>
+        <span class="guide-section-title">${s.title}</span>
+        <span class="guide-section-arrow">▶</span>
+      </div>
+      <div class="guide-section-body${i===0?' open':''}" id="gbody-${i}">
+        ${s.content}
+      </div>
+    </div>`).join('');
+}
+
+function toggleGuide(header){
+  const body = header.nextElementSibling;
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  header.classList.toggle('open', !isOpen);
+}
+
 /* ─────────────── INIT ──────────────── */
 (function init(){
+  updateProfilWidget();
   const grid=document.getElementById('personen-grid');
   if(!aufgaben.length){ showEmpty(); updateCount(); return; }
   const personen=[...new Set(aufgaben.map(a=>a.person))].sort();
