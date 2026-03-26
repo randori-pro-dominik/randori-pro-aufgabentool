@@ -2166,7 +2166,7 @@ function fristInfo(frist){
   if(d<=3)  return{cls:'soon',   text:'⏳ Fällig in '+d+' Tag(en)'};
   return{cls:'',text:'📅 '+f.toLocaleDateString('de-DE')};
 }
-function pPct(pa){ if(!pa.length) return 0; return Math.round(pa.reduce((s,a)=>s+a.fortschritt,0)/pa.length); }
+function pPct(pa){ if(!pa.length) return 0; return Math.round(pa.reduce((s,a)=>s+calcFortschritt(a),0)/pa.length); }
 function sortPA(a,b){
   const e=EIS_ORDER[a.eis]-EIS_ORDER[b.eis]; if(e!==0) return e;
   if(a.frist&&b.frist) return new Date(a.frist)-new Date(b.frist);
@@ -3615,7 +3615,7 @@ function renderTop10(){
   const el = document.getElementById('top10-list');
   if(!el) return;
   const ohne = aufgaben
-    .filter(a => !a.frist && a.fortschritt < 100)
+    .filter(a => !a.frist && calcFortschritt(a) < 100)
     .sort((a,b) => EIS_ORDER[a.eis]-EIS_ORDER[b.eis])
     .slice(0,10);
 
@@ -3653,8 +3653,8 @@ function renderDashboard(){
     return;
   }
 
-  const gesamtFort = Math.round(aufgaben.reduce((s,a)=>s+a.fortschritt,0)/total);
-  const erledigt   = aufgaben.filter(a=>a.fortschritt===100).length;
+  const gesamtFort = Math.round(aufgaben.reduce((s,a)=>s+calcFortschritt(a),0)/total);
+  const erledigt   = aufgaben.filter(a=>calcFortschritt(a)===100).length;
   const offen      = total - erledigt;
 
   // ── KPIs ──
@@ -3706,7 +3706,7 @@ function renderDashboard(){
   document.getElementById('dash-person-list').innerHTML = personen.map(person=>{
     const pa  = aufgaben.filter(a=>a.person===person);
     const pct = pPct(pa);
-    const erl = pa.filter(a=>a.fortschritt===100).length;
+    const erl = pa.filter(a=>calcFortschritt(a)===100).length;
     const chips = ['q1','q2','q3','q4'].map(q=>{
       const n = pa.filter(a=>a.eis===q).length;
       if(!n) return '';
