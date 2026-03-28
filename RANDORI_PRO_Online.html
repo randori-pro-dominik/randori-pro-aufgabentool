@@ -381,6 +381,31 @@ footer{background:rgba(255,255,255,.5);backdrop-filter:blur(10px);
 <!-- APP (hidden until logged in) -->
 <div id="app" style="display:none;">
 
+<!-- PASSWORT ÄNDERN MODAL -->
+<div class="modal-overlay" id="pw-modal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <span class="modal-title">🔑 Passwort ändern</span>
+      <button class="modal-close" onclick="document.getElementById('pw-modal').classList.remove('open')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group" style="margin-bottom:14px;">
+        <label>Neues Passwort</label>
+        <input type="password" id="pw-new" placeholder="Mind. 6 Zeichen"/>
+      </div>
+      <div class="form-group" style="margin-bottom:0;">
+        <label>Passwort bestätigen</label>
+        <input type="password" id="pw-confirm" placeholder="Wiederholen"/>
+      </div>
+      <div class="form-error" id="pw-error" style="margin-top:8px;"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="document.getElementById('pw-modal').classList.remove('open')">Abbrechen</button>
+      <button class="btn-primary" onclick="passwortAendern()">✓ Speichern</button>
+    </div>
+  </div>
+</div>
+
 <!-- TASK EDIT MODAL -->
 <div class="modal-overlay" id="edit-modal">
   <div class="modal-box">
@@ -470,6 +495,7 @@ footer{background:rgba(255,255,255,.5);backdrop-filter:blur(10px);
         <span class="hdr-username" id="hdr-username">–</span>
         <span class="hdr-rolle-badge" id="hdr-rolle-badge">–</span>
       </div>
+      <button class="logout-btn" onclick="zeigPasswortAendern()" style="margin-right:4px;">🔑 Passwort</button>
       <button class="logout-btn" onclick="doLogout()">Abmelden</button>
     </div>
   </div>
@@ -578,7 +604,7 @@ footer{background:rgba(255,255,255,.5);backdrop-filter:blur(10px);
   <div class="admin-tabs">
     <button class="admin-tab active" onclick="showAdminTab('users',this)">👥 Benutzer</button>
     <button class="admin-tab" onclick="showAdminTab('teams',this)">🔗 Team-Zuordnung</button>
-    <button class="admin-tab" onclick="showAdminTab('invite',this)">➕ Einladen</button>
+    <button class="admin-tab" onclick="showAdminTab('invite',this)">➕ Benutzer anlegen</button>
   </div>
 
   <!-- Users tab -->
@@ -615,33 +641,39 @@ footer{background:rgba(255,255,255,.5);backdrop-filter:blur(10px);
   <!-- Invite tab -->
   <div id="admin-tab-invite" class="glass-card" style="display:none;">
     <p style="font-size:13px;color:var(--grau);margin-bottom:16px;line-height:1.6;">
-      Lade neue Mitarbeiter ein. Sie erhalten eine E-Mail mit einem Magic-Link zum Einloggen.
+      Lege neue Mitarbeiter direkt an. Sie können sich sofort mit den gesetzten Zugangsdaten einloggen.
     </p>
     <div class="form-grid-2" style="margin-bottom:14px;">
-      <div class="form-group">
-        <label>E-Mail</label>
-        <input type="email" id="invite-email" placeholder="mitarbeiter@randori-pro.de"/>
-      </div>
       <div class="form-group">
         <label>Name</label>
         <input type="text" id="invite-name" placeholder="Vorname Nachname"/>
       </div>
+      <div class="form-group">
+        <label>E-Mail</label>
+        <input type="email" id="invite-email" placeholder="mitarbeiter@randori-pro.de"/>
+      </div>
     </div>
-    <div class="form-group" style="margin-bottom:14px;">
-      <label>Rolle</label>
-      <select id="invite-rolle">
-        <option value="mitarbeiter">Mitarbeiter</option>
-        <option value="teamleiter">Teamleiter</option>
-        <option value="admin">Admin</option>
-      </select>
+    <div class="form-grid-2" style="margin-bottom:14px;">
+      <div class="form-group">
+        <label>Passwort (temporär)</label>
+        <input type="text" id="invite-password" placeholder="Mind. 6 Zeichen"/>
+      </div>
+      <div class="form-group">
+        <label>Rolle</label>
+        <select id="invite-rolle">
+          <option value="mitarbeiter">Mitarbeiter</option>
+          <option value="teamleiter">Teamleiter</option>
+          <option value="admin">Admin</option>
+        </select>
+      </div>
     </div>
     <div class="form-footer">
       <span class="form-error" id="invite-error"></span>
-      <button class="btn-primary" onclick="userEinladen()">📧 Einladung senden</button>
+      <button class="btn-primary" onclick="userAnlegen()">➕ Benutzer anlegen</button>
     </div>
     <div style="margin-top:16px;padding:12px 16px;background:rgba(109,23,35,.05);border-radius:8px;
       border:1px solid rgba(109,23,35,.1);font-size:12px;color:var(--grau);line-height:1.6;">
-      💡 Der eingeladene Mitarbeiter erhält eine E-Mail mit einem Link. Beim ersten Klick wird ein Passwort gesetzt.
+      💡 Der Mitarbeiter kann sich sofort mit E-Mail und dem gesetzten Passwort einloggen. Teile ihm die Zugangsdaten sicher mit – er kann das Passwort danach selbst ändern.
     </div>
   </div>
 </main>
@@ -1158,21 +1190,62 @@ async function loescheZuordnung(id){
   ladeTeamZuordnungen();
 }
 
-async function userEinladen(){
-  const email = document.getElementById('invite-email').value.trim();
-  const name  = document.getElementById('invite-name').value.trim();
-  const rolle = document.getElementById('invite-rolle').value;
-  const errEl = document.getElementById('invite-error');
-  if(!email||!name){ errEl.textContent='E-Mail und Name sind Pflichtfelder.'; return; }
-  errEl.textContent='';
+async function userAnlegen(){
+  const email    = document.getElementById('invite-email').value.trim();
+  const name     = document.getElementById('invite-name').value.trim();
+  const password = document.getElementById('invite-password').value.trim();
+  const rolle    = document.getElementById('invite-rolle').value;
+  const errEl    = document.getElementById('invite-error');
+  errEl.textContent = '';
 
-  const { error } = await sb.auth.admin.inviteUserByEmail(email, {
-    data: { name, rolle }
+  if(!email||!name||!password){
+    errEl.textContent = 'Name, E-Mail und Passwort sind Pflichtfelder.'; return;
+  }
+  if(password.length < 6){
+    errEl.textContent = 'Passwort muss mindestens 6 Zeichen haben.'; return;
+  }
+
+  // Step 1: Sign up the new user
+  const { data: signUpData, error: signUpError } = await sb.auth.signUp({
+    email,
+    password,
+    options: { data: { name, rolle } }
   });
-  if(error){ errEl.textContent='Fehler: '+error.message; return; }
-  showToast('✓ Einladung gesendet an '+email);
-  document.getElementById('invite-email').value='';
-  document.getElementById('invite-name').value='';
+
+  if(signUpError){
+    errEl.textContent = 'Fehler: ' + signUpError.message; return;
+  }
+
+  const newUserId = signUpData?.user?.id;
+  if(!newUserId){
+    errEl.textContent = 'Benutzer wurde angelegt, aber ID nicht zurückgegeben. Bitte in Supabase prüfen.'; return;
+  }
+
+  // Step 2: Upsert profile with correct role
+  // (trigger may have already created it with default role)
+  const { error: profileError } = await sb.from('profiles').upsert({
+    id: newUserId,
+    name,
+    rolle
+  });
+
+  if(profileError){
+    // Profile may already exist via trigger – try update instead
+    await sb.from('profiles').update({ name, rolle }).eq('id', newUserId);
+  }
+
+  // Step 3: Refresh profiles list
+  const { data: profile } = await sb.from('profiles').select('id, name, rolle').order('name');
+  alleProfile = profile || [];
+  fuellePersonDropdowns();
+
+  showToast('✓ Benutzer „' + name + '" angelegt');
+  document.getElementById('invite-email').value    = '';
+  document.getElementById('invite-name').value     = '';
+  document.getElementById('invite-password').value = '';
+
+  // Reload user table
+  ladeUsers();
 }
 
 // ── REALTIME ──────────────────────────────────
@@ -1210,6 +1283,26 @@ function showPage(page){
   if(page==='nachrichten') ladeAlleNachrichten();
   if(page==='admin'){ ladeUsers(); }
   window.scrollTo({top:0,behavior:'instant'});
+}
+
+function zeigPasswortAendern(){
+  document.getElementById('pw-new').value='';
+  document.getElementById('pw-confirm').value='';
+  document.getElementById('pw-error').textContent='';
+  document.getElementById('pw-modal').classList.add('open');
+}
+
+async function passwortAendern(){
+  const pw1   = document.getElementById('pw-new').value;
+  const pw2   = document.getElementById('pw-confirm').value;
+  const errEl = document.getElementById('pw-error');
+  errEl.textContent='';
+  if(pw1.length < 6){ errEl.textContent='Mind. 6 Zeichen.'; return; }
+  if(pw1 !== pw2)   { errEl.textContent='Passwörter stimmen nicht überein.'; return; }
+  const { error } = await sb.auth.updateUser({ password: pw1 });
+  if(error){ errEl.textContent='Fehler: '+error.message; return; }
+  document.getElementById('pw-modal').classList.remove('open');
+  showToast('✓ Passwort geändert');
 }
 
 // Enter key on login
