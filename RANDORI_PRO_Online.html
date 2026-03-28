@@ -2211,16 +2211,57 @@ function showLogin(){
   document.getElementById('app-inner').style.display='none';
 }
 
+// Animated loading dots
+function startLoginAnim(spinEl){
+  let dots = 0;
+  const msgs = [
+    'Verbinde mit Server',
+    'Server aufwecken',
+    'Fast fertig',
+    'Einen Moment noch'
+  ];
+  let msgIdx = 0;
+  spinEl._timer = setInterval(()=>{
+    dots = (dots + 1) % 4;
+    if(dots === 0) msgIdx = Math.min(msgIdx + 1, msgs.length - 1);
+    spinEl.textContent = msgs[msgIdx] + '.'.repeat(dots || 1);
+  }, 600);
+}
+function stopLoginAnim(spinEl){
+  clearInterval(spinEl._timer);
+  spinEl.textContent = '';
+}
+
 async function doLogin(){
-  const email=document.getElementById('l-email').value.trim();
-  const pass=document.getElementById('l-pass').value;
-  const err=document.getElementById('l-err');
-  const spin=document.getElementById('l-spin');
-  const btn=document.getElementById('l-btn');
-  err.textContent=''; spin.style.display='block'; btn.disabled=true;
-  const {error}=await sb.auth.signInWithPassword({email,password:pass});
-  spin.style.display='none'; btn.disabled=false;
-  if(error) err.textContent='Fehler: '+error.message;
+  const email = document.getElementById('l-email').value.trim();
+  const pass  = document.getElementById('l-pass').value;
+  const err   = document.getElementById('l-err');
+  const spin  = document.getElementById('l-spin');
+  const btn   = document.getElementById('l-btn');
+
+  if(!email || !pass){
+    err.textContent = 'Bitte E-Mail und Passwort eingeben.'; return;
+  }
+
+  err.textContent = '';
+  spin.style.display = 'block';
+  btn.disabled = true;
+  startLoginAnim(spin);
+
+  // Aggressive wake-up ping first – this warms up the connection
+  await sbPing();
+
+  const { error } = await sb.auth.signInWithPassword({ email, password: pass });
+
+  stopLoginAnim(spin);
+  spin.style.display = 'none';
+  btn.disabled = false;
+
+  if(error){
+    err.textContent = error.message.includes('Invalid login')
+      ? 'E-Mail oder Passwort falsch.'
+      : 'Fehler: ' + error.message;
+  }
 }
 
 async function doLogout(){
@@ -2232,8 +2273,18 @@ async function doLogout(){
 }
 
 async function sbInit(){
+  // Show loading state while app initializes
+  const loginScreen = document.getElementById('login-screen');
+  const spin = document.getElementById('l-spin');
+  if(spin){ spin.style.display='block'; spin.textContent='Daten werden geladen …'; }
+
   const {data:p}=await sb.from('profiles').select('*').eq('id',sbUser.id).single();
-  if(!p){ showToast('Profil nicht gefunden','error'); return; }
+  if(!p){
+    if(spin) spin.style.display='none';
+    showToast('Profil nicht gefunden – bitte Admin kontaktieren.','error');
+    await sb.auth.signOut();
+    return;
+  }
   sbProfil=p;
   const {data:all}=await sb.from('profiles').select('id,name,rolle').order('name');
   sbProfile=all||[];
@@ -2242,7 +2293,8 @@ async function sbInit(){
   fillSelects();
   await sbLoad();
   sbRealtime();
-  document.getElementById('login-screen').style.display='none';
+  if(spin) spin.style.display='none';
+  loginScreen.style.display='none';
   document.getElementById('app-inner').style.display='block';
   meinName=sbProfil.name;
   localStorage.setItem('rp_mein_name',meinName);
